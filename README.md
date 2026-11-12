@@ -1,2 +1,929 @@
-# Omsi-Repaintify
-An Omsi Repaint tool
+🚌 OMSI Repaint Studio
+
+OMSI Repaint Studio is a image editing and texture creation suite designed specifically for OMSI 2 bus simulator enthusiasts. It allows you to create, edit, and manage repaints for your favorite buses directly and effortlessly without needing heavy, standalone external software like Photoshop or GIMP.
+✨ Key Features
+
+    Direct OMSI Folder Integration: Seamlessly connects to your local OMSI 2 installation via the File System Access API. It automatically scans your Vehicles directory, lists all available buses (along with their friendly names), and indexes their textures.
+
+    Advanced Multi-Layer Editing:
+
+        Full layer management: create new layers, duplicate, delete, reorder, and merge layers.
+
+        Professional blend modes (Normal, Multiply, Screen, Overlay, Color Dodge, etc.) and adjustable opacity.
+
+        Layer locking and visibility toggles to keep complex work organized.
+
+    Comprehensive Drawing & Design Tools:
+
+        Brush & Eraser: Smooth drawing with adjustable sizes and opacities.
+
+        Smart Paint Bucket (Flood Fill): Fill connected areas with adjustable tolerance, edge expansion (to eliminate bright lines), and multi-layer sampling options.
+
+        Vector Shapes: Easily draw and customize rectangles (with corner radiuses), ellipses, polygons, stars, lines, and text with custom fonts, sizes, and styles.
+
+        Color Swatches & Eyedropper: Quickly pick colors from the canvas or use preset swatches.
+
+    Logo & Image Insertion: Drag-and-drop or paste images, logos, or extra graphics directly onto your textures.
+
+    Full Format Support: Fully handles reading and writing standard OMSI texture formats including BMP, PNG, JPG, TGA, and DDS (with built-in DXT decoders/encoders).
+
+    Robust History System: Unlimited Undo (Ctrl+Z) and Redo (Ctrl+Y) support so you can experiment freely.
+
+    Direct Export & Repaint Saving: Saves your work directly into the correct OMSI texture subfolders (Vehicles/<Bus>/Texture/<YourRepaintName>/) while automatically copying configuration files (.cfg, .txt, .ini) from the source folders if desired.
+
+🚀 Getting Started
+
+    Open the tool in a modern desktop browser that supports local file access (such as Google Chrome or Microsoft Edge).
+
+    Code:
+
+    <!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMSI Repaint Studio</title>
+<style>
+:root{--bg:#14171c;--p:#1d2128;--p2:#262b34;--b:#343a46;--t:#e7eaf0;--m:#9aa3b2;--a:#ff9f1c}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--t);font:13px system-ui,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;gap:8px;align-items:center;padding:8px 12px;background:var(--p);border-bottom:1px solid var(--b);flex-wrap:wrap}
+header b{font-size:15px;margin-right:6px}
+.sp{flex:1}
+button,select,input,textarea{font:inherit;color:var(--t);background:var(--p2);border:1px solid var(--b);border-radius:6px;padding:5px 9px}
+button{cursor:pointer}button:hover{border-color:var(--a)}
+button.on{background:var(--a);color:#111;border-color:var(--a)}
+button.pri{background:var(--a);color:#111;border-color:var(--a);font-weight:600}
+input[type=color]{padding:0;width:38px;height:28px;cursor:pointer}
+input[type=range]{padding:0;width:100%;accent-color:var(--a)}
+input[type=number]{width:100%}
+input[type=checkbox]{accent-color:var(--a)}
+textarea{width:100%;resize:vertical;min-height:54px}
+main{flex:1;display:grid;grid-template-columns:270px 1fr 300px;min-height:0}
+aside{background:var(--p);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:12px}
+#left{border-right:1px solid var(--b)}#right{border-left:1px solid var(--b)}
+h4{margin:0 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--m)}
+.list{display:flex;flex-direction:column;gap:2px;max-height:260px;overflow:auto;margin-top:6px}
+.item{padding:5px 8px;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.item:hover{background:var(--p2)}.item.sel{background:#3a2f17;outline:1px solid var(--a)}
+.item small{color:var(--m)}
+.grp{font-size:11px;color:var(--a);padding:6px 8px 2px}
+.row{display:grid;grid-template-columns:92px 1fr auto;gap:8px;align-items:center;margin-bottom:6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.row2 label{display:flex;flex-direction:column;gap:2px;color:var(--m);font-size:11px}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+.sw{display:flex;flex-wrap:wrap;gap:4px}.sw i{width:22px;height:22px;border-radius:5px;border:1px solid #0006;cursor:pointer}
+#center{display:flex;flex-direction:column;min-width:0}
+#tools{display:flex;gap:4px;padding:6px;background:var(--p);border-bottom:1px solid var(--b);flex-wrap:wrap}
+#tools button{min-width:38px;font-size:15px;padding:4px 8px}
+#vp{position:relative;flex:1;overflow:hidden;background:#0d0f12;touch-action:none;user-select:none}
+#stage{position:absolute;left:0;top:0;transform-origin:0 0;box-shadow:0 0 0 1px #000,0 10px 40px #000a;
+ background:conic-gradient(#3a3f49 25%,#2b2f37 0 50%,#3a3f49 0 75%,#2b2f37 0) 0 0/24px 24px}
+#stage.px canvas{image-rendering:pixelated}
+#stage canvas{position:absolute;left:0;top:0}
+.holder{position:absolute;left:0;top:0;isolation:isolate}
+.lyr{position:absolute;left:0;top:0;width:100%;height:100%}
+#lyList .item button{padding:0 6px;background:transparent;border-color:transparent}
+#lyList .item span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--m);text-align:center;line-height:1.7;pointer-events:none;padding:30px}
+#status{display:flex;gap:16px;padding:4px 12px;background:var(--p);border-top:1px solid var(--b);color:var(--m);font-size:12px}
+#log{max-height:140px;overflow:auto;font-size:11px;color:var(--m);display:flex;flex-direction:column;gap:2px}
+#log .err{color:#ff6b6b}#log .ok{color:#7bd88f}
+#layers{display:flex;flex-direction:column;gap:2px;max-height:170px;overflow:auto}
+.hint{color:var(--m);font-size:11px;line-height:1.5}
+.chk{display:flex;gap:5px;align-items:center;color:var(--t)}
+</style>
+</head>
+<body>
+<header>
+  <b>🚌 OMSI Repaint Studio</b>
+  <button id="btnRoot" class="pri">OMSI-Ordner wählen …</button>
+  <button id="btnLast" hidden></button>
+  <button id="btnOpenFile">Einzelne Textur öffnen …</button>
+  <input type="file" id="fileOpen" hidden accept=".bmp,.jpg,.jpeg,.png,.tga,.dds">
+  <input type="file" id="fileLogo" hidden multiple accept="image/*,.tga,.dds">
+  <span id="rootInfo" class="hint"></span>
+  <span class="sp"></span>
+  <button id="btnUndo" title="Rückgängig (Strg+Z)">↶</button>
+  <button id="btnRedo" title="Wiederholen (Strg+Y)">↷</button>
+  <button id="btnFit">Einpassen</button>
+  <button id="btn100">100 %</button>
+  <label class="chk"><input type="checkbox" id="gridOn"> Raster</label>
+  <input type="number" id="gridSize" value="128" min="8" max="1024" step="8" style="width:70px">
+  <label class="chk"><input type="checkbox" id="snapOn"> Einrasten</label>
+</header>
+
+<main>
+  <aside id="left">
+    <div>
+      <h4>Fahrzeuge im OMSI-Ordner</h4>
+      <input id="fVeh" placeholder="Fahrzeug suchen …" style="width:100%">
+      <div id="vehList" class="list" style="max-height:230px"></div>
+    </div>
+    <div>
+      <h4>Texturen <span id="texTitle"></span></h4>
+      <input id="fTex" placeholder="Textur filtern …" style="width:100%">
+      <div id="texList" class="list" style="max-height:280px"></div>
+    </div>
+    <div>
+      <h4>Geöffnete Texturen</h4>
+      <div id="sessions" class="list" style="max-height:160px"></div>
+    </div>
+  </aside>
+
+  <section id="center">
+    <div id="tools"></div>
+    <div id="vp">
+      <div id="stage"></div>
+      <div id="empty">Links den OMSI-Ordner wählen, ein Fahrzeug anklicken und eine Textur öffnen.<br>Alternativ: oben „Einzelne Textur öffnen“.</div>
+    </div>
+    <div id="status"><span id="stPos">–</span><span id="stZoom">–</span><span id="stSize">–</span><span id="stMsg"></span></div>
+  </section>
+
+  <aside id="right">
+    <div>
+      <h4>Ebenen</h4>
+      <div class="btns" style="margin-bottom:6px">
+        <button id="lNew" title="Neue Ebene über der aktiven">＋ Neu</button><button id="lDup">Duplizieren</button><button id="lDel">Löschen</button>
+        <button id="lUp" title="Ebene nach oben">↑</button><button id="lDown" title="Ebene nach unten">↓</button>
+        <button id="lMerge" title="Mit der darunterliegenden Ebene verschmelzen">Verschmelzen</button>
+      </div>
+      <div id="lyList" class="list" style="max-height:210px"></div>
+      <div class="row" style="margin-top:8px"><span>Modus</span><select id="lBlend" style="grid-column:2/4"></select></div>
+      <div class="row"><span>Deckkraft</span><input type="range" id="lOp" min="0" max="100" value="100"><output id="oLOp">100</output></div>
+      <div class="hint">👁 ein-/ausblenden · 🔓 sperren · Doppelklick auf den Namen = umbenennen. Pinsel, Füllen, Formen und Logos landen in der <b>aktiven</b> Ebene (orange). „Original“ ist die geladene Textur.</div>
+    </div>
+    <div><h4>Objekte in dieser Ebene</h4><div id="layers"></div></div>
+    <div>
+      <h4>Farben</h4>
+      <div class="row"><span>Füllung</span><input type="color" id="cFill" value="#d62828"><label class="chk"><input type="checkbox" id="cFillOn" checked> an</label></div>
+      <div class="row"><span>Kontur</span><input type="color" id="cStroke" value="#000000"><label class="chk"><input type="checkbox" id="cStrokeOn"> an</label></div>
+      <div class="row"><span>Konturbreite</span><input type="range" id="cSw" min="0" max="120" value="6"><output id="oSw">6</output></div>
+      <div class="row"><span>Deckkraft</span><input type="range" id="cOp" min="1" max="100" value="100"><output id="oOp">100</output></div>
+      <div class="sw" id="swatches" title="Klick = Füllung, Rechtsklick = Kontur"></div>
+    </div>
+    <div>
+      <h4>Pinsel &amp; Füllen</h4>
+      <div class="row"><span>Pinselgröße</span><input type="range" id="cBrush" min="1" max="400" value="40"><output id="oBrush">40</output></div>
+      <div class="row"><span>Toleranz</span><input type="range" id="cTol" min="0" max="100" value="24"><output id="oTol">24</output></div>
+      <div class="row"><span>Ausdehnen px</span><input type="range" id="cGrow" min="0" max="6" value="1"><output id="oGrow">1</output></div>
+      <div class="hint">Füllen malt eine zusammenhängende Fläche an. „Ausdehnen“ schließt helle Kanten an Linien.</div>
+      <label class="chk" style="margin-top:6px"><input type="checkbox" id="cAllLay" checked> Füllen wertet alle sichtbaren Ebenen aus</label>
+    </div>
+    <div>
+      <h4>Form</h4>
+      <div class="row"><span>Eckenradius</span><input type="range" id="cR" min="0" max="500" value="0"><output id="oR">0</output></div>
+      <div class="row"><span>Ecken/Spitzen</span><input type="range" id="cN" min="3" max="16" value="5"><output id="oN">5</output></div>
+    </div>
+    <div>
+      <h4>Text</h4>
+      <textarea id="cText">Text</textarea>
+      <div class="row2" style="margin-top:6px">
+        <label>Schrift<select id="cFont"><option>Arial</option><option>Impact</option><option>Verdana</option><option>Tahoma</option><option>Trebuchet MS</option><option>Georgia</option><option>Times New Roman</option><option>Courier New</option><option>Comic Sans MS</option></select></label>
+        <label>Größe (px)<input type="number" id="cFs" value="160" min="4" max="2000"></label>
+      </div>
+      <div class="btns"><label class="chk"><input type="checkbox" id="cBold" checked> fett</label><label class="chk"><input type="checkbox" id="cItalic"> kursiv</label></div>
+    </div>
+    <div>
+      <h4>Ausgewähltes Objekt</h4>
+      <div class="row2">
+        <label>X<input type="number" id="pX"></label><label>Y<input type="number" id="pY"></label>
+        <label>Breite<input type="number" id="pW"></label><label>Höhe<input type="number" id="pH"></label>
+        <label>Drehung °<input type="number" id="pR"></label>
+      </div>
+      <div class="btns">
+        <button id="bDup">Duplizieren</button><button id="bDel">Löschen</button>
+        <button id="bFront">Nach vorn</button><button id="bBack">Nach hinten</button>
+        <button id="bFlipH">⇋ Spiegeln</button><button id="bFlipV">⇅ Spiegeln</button>
+      </div>
+    </div>
+    <div>
+      <h4>Als Repaint speichern</h4>
+      <input id="rname" value="MeinRepaint" style="width:100%" placeholder="Repaint-Ordnername">
+      <label class="chk" style="margin:6px 0"><input type="checkbox" id="copyCfg" checked> .cfg/.txt aus Quell-Unterordner mitkopieren</label>
+      <div class="btns"><button id="bSave" class="pri">Aktuelle speichern</button><button id="bSaveAll">Alle geänderten</button></div>
+      <div class="hint" style="margin-top:6px">Gespeichert wird nach <code>Vehicles/&lt;Bus&gt;/Texture/&lt;Name&gt;/</code>. Originale bleiben unangetastet. DDS wird unkomprimiert geschrieben.</div>
+    </div>
+    <div><h4>Protokoll</h4><div id="log"></div></div>
+  </aside>
+</main>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const el=(t,p={},...k)=>{const e=document.createElement(t);Object.assign(e,p);k.forEach(x=>e.append(x));return e;};
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const ext=n=>n.split('.').pop().toLowerCase();
+const IMG_EXT=['bmp','jpg','jpeg','tga','dds','png'];
+const mkCanvas=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;};
+const log=(m,c='')=>{$('#log').prepend(el('div',{className:c,textContent:new Date().toLocaleTimeString()+'  '+m}));};
+
+//#codec-start
+function readPx(u,o,bits){
+  if(bits===16){const v=u[o]|u[o+1]<<8;return[((v>>10)&31)*255/31,((v>>5)&31)*255/31,(v&31)*255/31,255];}
+  if(bits===24)return[u[o+2],u[o+1],u[o],255];
+  return[u[o+2],u[o+1],u[o],u[o+3]];
+}
+function decodeTGA(buf){
+  const u=new Uint8Array(buf),v=new DataView(buf);
+  const idLen=u[0],cmType=u[1],type=u[2],cmFirst=v.getUint16(3,true),cmLen=v.getUint16(5,true),cmBits=u[7];
+  const w=v.getUint16(12,true),h=v.getUint16(14,true),bpp=u[16],desc=u[17];
+  if(![1,2,3,9,10,11].includes(type))throw new Error('TGA-Typ '+type+' nicht unterstützt');
+  let off=18+idLen,pal=null;
+  if(cmType===1){const cb=Math.ceil(cmBits/8);pal=[];for(let i=0;i<cmLen;i++)pal.push(readPx(u,off+i*cb,cmBits));off+=cmLen*cb;}
+  const bytes=Math.ceil(bpp/8),rle=type>=9,n=w*h,out=new Uint8ClampedArray(n*4);
+  const px=o=>pal?(pal[u[o]-cmFirst]||[0,0,0,255]):(bpp===8?[u[o],u[o],u[o],255]:readPx(u,o,bpp));
+  let i=0;const store=p=>{out[i*4]=p[0];out[i*4+1]=p[1];out[i*4+2]=p[2];out[i*4+3]=p[3];i++;};
+  if(!rle){while(i<n){store(px(off));off+=bytes;}}
+  else{while(i<n){const hd=u[off++],cnt=(hd&127)+1;
+    if(hd&128){const p=px(off);off+=bytes;for(let k=0;k<cnt&&i<n;k++)store(p);}
+    else for(let k=0;k<cnt&&i<n;k++){store(px(off));off+=bytes;}}}
+  if(!(desc&0x20)){const row=w*4,tmp=new Uint8ClampedArray(row);
+    for(let y=0;y<(h>>1);y++){const a=y*row,b=(h-1-y)*row;tmp.set(out.subarray(a,a+row));out.copyWithin(a,b,b+row);out.set(tmp,b);}}
+  if(bpp===32){let any=false;for(let k=3;k<out.length;k+=4)if(out[k]){any=true;break;}if(!any)for(let k=3;k<out.length;k+=4)out[k]=255;}
+  return{img:new ImageData(out,w,h),bpp:bpp===32?32:24};
+}
+function decodeDXT(u,off,w,h,kind){
+  const out=new Uint8ClampedArray(w*h*4),bw=(w+3)>>2,bh=(h+3)>>2,bs=kind===1?8:16;
+  const c565=c=>[((c>>11)&31)*255/31,((c>>5)&63)*255/63,(c&31)*255/31];
+  for(let by=0;by<bh;by++)for(let bx=0;bx<bw;bx++){
+    const p=off+(by*bw+bx)*bs,cp=p+(kind===1?0:8);
+    const c0=u[cp]|u[cp+1]<<8,c1=u[cp+2]|u[cp+3]<<8,a=c565(c0),b=c565(c1),pal=[a,b];
+    if(c0>c1||kind!==1)pal.push(a.map((v,i)=>(2*v+b[i])/3),a.map((v,i)=>(v+2*b[i])/3));
+    else pal.push(a.map((v,i)=>(v+b[i])/2),[0,0,0]);
+    const bits=u[cp+4]|u[cp+5]<<8|u[cp+6]<<16|u[cp+7]<<24;
+    let alpha=null;
+    if(kind===3){alpha=[];for(let i=0;i<16;i++)alpha.push(((u[p+(i>>1)]>>((i&1)*4))&15)*17);}
+    else if(kind===5){const a0=u[p],a1=u[p+1],t=[a0,a1];
+      if(a0>a1)for(let i=1;i<7;i++)t.push(((7-i)*a0+i*a1)/7);
+      else{for(let i=1;i<5;i++)t.push(((5-i)*a0+i*a1)/5);t.push(0,255);}
+      const lo=u[p+2]|u[p+3]<<8|u[p+4]<<16,hi=u[p+5]|u[p+6]<<8|u[p+7]<<16;
+      alpha=[];for(let i=0;i<16;i++)alpha.push(t[i<8?(lo>>(3*i))&7:(hi>>(3*(i-8)))&7]);}
+    for(let i=0;i<16;i++){const x=bx*4+(i&3),y=by*4+(i>>2);if(x>=w||y>=h)continue;
+      const ci=(bits>>>(2*i))&3,c=pal[ci],o=(y*w+x)*4;
+      out[o]=c[0];out[o+1]=c[1];out[o+2]=c[2];
+      out[o+3]=alpha?alpha[i]:(kind===1&&c0<=c1&&ci===3?0:255);}
+  }
+  return out;
+}
+function decodeDDS(buf){
+  const v=new DataView(buf),u=new Uint8Array(buf);
+  if(v.getUint32(0,true)!==0x20534444)throw new Error('Keine gültige DDS-Datei');
+  const h=v.getUint32(12,true),w=v.getUint32(16,true),flags=v.getUint32(80,true);
+  const cc=String.fromCharCode(u[84],u[85],u[86],u[87]),bits=v.getUint32(88,true);
+  const rm=v.getUint32(92,true),gm=v.getUint32(96,true),bm=v.getUint32(100,true),am=v.getUint32(104,true);
+  if(flags&4){const kind={DXT1:1,DXT3:3,DXT5:5}[cc];if(!kind)throw new Error('DDS-Format '+cc+' nicht unterstützt');
+    return{img:new ImageData(decodeDXT(u,128,w,h,kind),w,h),bpp:kind===1?24:32};}
+  if((flags&0x40)&&(bits===32||bits===24)){
+    const bp=bits/8,out=new Uint8ClampedArray(w*h*4);
+    const sh=m=>31-Math.clz32(m&-m);
+    const ch=(px,m)=>m?Math.round(((px&m)>>>sh(m))*255/(m>>>sh(m))):255;
+    for(let i=0;i<w*h;i++){const o=128+i*bp,px=bp===4?v.getUint32(o,true):(u[o]|u[o+1]<<8|u[o+2]<<16);
+      out[i*4]=ch(px,rm);out[i*4+1]=ch(px,gm);out[i*4+2]=ch(px,bm);out[i*4+3]=am?ch(px,am):255;}
+    return{img:new ImageData(out,w,h),bpp:am?32:24};
+  }
+  throw new Error('Dieses DDS-Pixelformat wird nicht unterstützt');
+}
+function encodeBMP(img){
+  const w=img.width,h=img.height,rs=(w*3+3)&~3,sz=rs*h,b=new ArrayBuffer(54+sz),v=new DataView(b),u=new Uint8Array(b),d=img.data;
+  u[0]=66;u[1]=77;v.setUint32(2,54+sz,true);v.setUint32(10,54,true);v.setUint32(14,40,true);
+  v.setInt32(18,w,true);v.setInt32(22,h,true);v.setUint16(26,1,true);v.setUint16(28,24,true);v.setUint32(34,sz,true);v.setInt32(38,2835,true);v.setInt32(42,2835,true);
+  for(let y=0;y<h;y++){let o=54+(h-1-y)*rs;for(let x=0;x<w;x++){const i=(y*w+x)*4;u[o++]=d[i+2];u[o++]=d[i+1];u[o++]=d[i];}}
+  return b;
+}
+function encodeTGA(img,bpp){
+  bpp=bpp===24?24:32;const w=img.width,h=img.height,by=bpp/8,b=new ArrayBuffer(18+w*h*by),v=new DataView(b),u=new Uint8Array(b),d=img.data;
+  u[2]=2;v.setUint16(12,w,true);v.setUint16(14,h,true);u[16]=bpp;u[17]=bpp===32?8:0;
+  let o=18;for(let y=h-1;y>=0;y--)for(let x=0;x<w;x++){const i=(y*w+x)*4;u[o++]=d[i+2];u[o++]=d[i+1];u[o++]=d[i];if(by===4)u[o++]=d[i+3];}
+  return b;
+}
+function encodeDDS(img){
+  const w=img.width,h=img.height,b=new ArrayBuffer(128+w*h*4),v=new DataView(b),u=new Uint8Array(b),d=img.data;
+  v.setUint32(0,0x20534444,true);v.setUint32(4,124,true);v.setUint32(8,0x100F,true);v.setUint32(12,h,true);v.setUint32(16,w,true);v.setUint32(20,w*4,true);
+  v.setUint32(76,32,true);v.setUint32(80,0x41,true);v.setUint32(88,32,true);
+  v.setUint32(92,0x00FF0000,true);v.setUint32(96,0x0000FF00,true);v.setUint32(100,0x000000FF,true);v.setUint32(104,0xFF000000,true);v.setUint32(108,0x1000,true);
+  for(let i=0;i<w*h;i++){u[128+i*4]=d[i*4+2];u[129+i*4]=d[i*4+1];u[130+i*4]=d[i*4];u[131+i*4]=d[i*4+3];}
+  return b;
+}
+//#codec-end
+
+function imgDataToCanvas(img){const c=mkCanvas(img.width,img.height);c.getContext('2d').putImageData(img,0,0);return c;}
+async function decodeToCanvas(buf,name){
+  const e=ext(name);
+  if(e==='tga'){const r=decodeTGA(buf);return{canvas:imgDataToCanvas(r.img),info:{bpp:r.bpp}};}
+  if(e==='dds'){const r=decodeDDS(buf);return{canvas:imgDataToCanvas(r.img),info:{bpp:r.bpp}};}
+  const bmp=await createImageBitmap(new Blob([buf]));
+  const c=mkCanvas(bmp.width,bmp.height);c.getContext('2d').drawImage(bmp,0,0);return{canvas:c,info:{}};
+}
+async function encodeCanvas(c,name,info){
+  const e=ext(name);
+  if(e==='png')return new Promise(r=>c.toBlob(r,'image/png'));
+  if(e==='jpg'||e==='jpeg')return new Promise(r=>c.toBlob(r,'image/jpeg',0.95));
+  const img=c.getContext('2d').getImageData(0,0,c.width,c.height);
+  if(e==='bmp')return new Blob([encodeBMP(img)]);
+  if(e==='tga')return new Blob([encodeTGA(img,info.bpp||32)]);
+  if(e==='dds')return new Blob([encodeDDS(img)]);
+  throw new Error('Unbekanntes Format '+e);
+}
+
+/* ---------------- State ---------------- */
+const S={root:null,vehicles:[],veh:null,textures:[],sessions:new Map(),cur:null,tool:'select',space:false,
+  style:{fill:'#d62828',fillOn:true,stroke:'#000000',strokeOn:false,sw:6,opacity:1,brush:40,tol:24,grow:1,n:5,r:0,font:'Arial',fs:160,bold:true,italic:false,text:'Text'},
+  grid:false,gridSize:128,snap:false,fillAll:true,images:new Map(),nextId:1};
+const vp=$('#vp'),stage=$('#stage');
+let drag=null;
+
+/* ---------------- Dateisystem ---------------- */
+const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('omsi-repaint-studio',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+async function kvSet(k,v){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error);});}
+async function kvGet(k){const db=await idb();return new Promise((res,rej)=>{const q=db.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
+
+async function connectRoot(h){
+  try{await h.getDirectoryHandle('Vehicles');}catch{alert('Im gewählten Ordner gibt es keinen Unterordner „Vehicles“.\nBitte den OMSI-2-Hauptordner wählen (z. B. …\\steamapps\\common\\OMSI 2).');return;}
+  S.root=h;$('#rootInfo').textContent='Verbunden: '+h.name;
+  try{await kvSet('root',h);}catch{}
+  await scanVehicles();
+}
+$('#btnRoot').onclick=async()=>{
+  if(!window.showDirectoryPicker){alert('Dein Browser unterstützt den Ordnerzugriff nicht. Bitte Chrome oder Edge am PC verwenden – oder „Einzelne Textur öffnen“ nutzen.');return;}
+  try{const h=await showDirectoryPicker({mode:'readwrite'});await connectRoot(h);}
+  catch(e){if(e.name!=='AbortError'){log('Ordner konnte nicht geöffnet werden: '+e.message,'err');alert('Ordner konnte nicht geöffnet werden:\n'+e.message+'\n\nTipp: Falls der Browser den Ordner als „Systemordner“ ablehnt, den OMSI-Ordner an einen anderen Ort kopieren oder den Ordner „OMSI 2“ direkt (nicht übergeordnet) wählen.');}}
+};
+(async()=>{
+  try{const h=await kvGet('root');if(h&&window.showDirectoryPicker){const b=$('#btnLast');b.hidden=false;b.textContent='Zuletzt: '+h.name;
+    b.onclick=async()=>{try{if((await h.requestPermission({mode:'readwrite'}))==='granted'){await connectRoot(h);b.hidden=true;}}catch(e){log('Wiederverbinden fehlgeschlagen: '+e.message,'err');}};}}catch{}
+})();
+
+async function scanVehicles(){
+  const vd=await S.root.getDirectoryHandle('Vehicles'),list=[];let n=0;
+  $('#vehList').textContent='Suche Fahrzeuge …';
+  for await(const[name,h]of vd.entries()){
+    if(h.kind!=='directory')continue;
+    let bus=null,type='',hasTex=false;
+    for await(const[n2,h2]of h.entries()){
+      const l=n2.toLowerCase();
+      if(h2.kind==='file'){if(l.endsWith('.bus')){bus=bus&&type==='Bus'?bus:h2;type='Bus';}else if(l.endsWith('.ovh')&&!bus){bus=h2;type='Fahrzeug';}}
+      else if(l==='texture')hasTex=true;
+    }
+    if(!bus||!hasTex)continue;
+    let friendly='';
+    try{const t=new TextDecoder('windows-1252').decode(await (await bus.getFile()).arrayBuffer()).split(/\r?\n/);
+      const i=t.findIndex(x=>x.trim().toLowerCase()==='[friendlyname]');if(i>=0)friendly=(t.slice(i+1).find(x=>x.trim())||'').trim();}catch{}
+    list.push({name,handle:h,type,friendly});
+    if(++n%10===0)$('#vehList').textContent='Gefunden: '+n+' …';
+  }
+  list.sort((a,b)=>a.name.localeCompare(b.name,'de',{sensitivity:'base'}));
+  S.vehicles=list;renderVehicles();log(list.length+' Fahrzeuge mit Texturen gefunden.','ok');
+}
+function renderVehicles(){
+  const q=$('#fVeh').value.toLowerCase(),d=$('#vehList');d.replaceChildren();
+  for(const v of S.vehicles){
+    if(q&&!(v.name+' '+v.friendly).toLowerCase().includes(q))continue;
+    const it=el('div',{className:'item'+(S.veh===v?' sel':''),title:v.name});
+    it.append(el('span',{textContent:v.friendly||v.name}),el('small',{textContent:v.type+(v.friendly?' · '+v.name:'')}));
+    it.onclick=()=>selectVehicle(v);d.append(it);
+  }
+  if(!d.children.length)d.textContent=S.root?'Keine Treffer.':'Noch kein Ordner gewählt.';
+}
+$('#fVeh').oninput=renderVehicles;
+async function walk(dir,prefix,depth,out){
+  for await(const[n,h]of dir.entries()){
+    if(h.kind==='directory'){if(depth<3)await walk(h,prefix+n+'/',depth+1,out);}
+    else if(IMG_EXT.includes(ext(n)))out.push({name:n,path:prefix+n,handle:h});
+  }
+}
+async function selectVehicle(v){
+  S.veh=v;renderVehicles();$('#texTitle').textContent='– '+(v.friendly||v.name);$('#texList').textContent='Lade …';
+  const out=[];try{await walk(await v.handle.getDirectoryHandle('Texture'),'',0,out);}catch(e){log('Texturordner nicht lesbar: '+e.message,'err');}
+  out.sort((a,b)=>a.path.localeCompare(b.path,'de',{numeric:true,sensitivity:'base'}));
+  S.textures=out;renderTextures();
+}
+function renderTextures(){
+  const q=$('#fTex').value.toLowerCase(),d=$('#texList');d.replaceChildren();let shown=0,last=null;
+  for(const t of S.textures){
+    if(q&&!t.path.toLowerCase().includes(q))continue;
+    if(shown>=400){d.append(el('div',{className:'hint',textContent:'… weitere Treffer – bitte filtern.'}));break;}
+    const folder=t.path.includes('/')?t.path.slice(0,t.path.lastIndexOf('/')):'(Texture)';
+    if(folder!==last){d.append(el('div',{className:'grp',textContent:folder}));last=folder;}
+    const key=S.veh.name+'/'+t.path;
+    const it=el('div',{className:'item'+(S.sessions.get(key)===S.cur&&S.cur?' sel':''),title:t.path});
+    it.append(el('span',{textContent:t.name}),el('small',{textContent:ext(t.name).toUpperCase()}));
+    it.onclick=()=>openTexture(t);d.append(it);shown++;
+  }
+  if(!shown)d.textContent='Keine Texturen gefunden.';
+}
+$('#fTex').oninput=renderTextures;
+
+/* ---------------- Sessions ---------------- */
+async function openTexture(t){
+  const key=S.veh.name+'/'+t.path;
+  if(S.sessions.has(key)){activate(S.sessions.get(key));return;}
+  try{
+    stMsg('Lade '+t.name+' …');
+    const buf=await(await t.handle.getFile()).arrayBuffer();
+    const{canvas,info}=await decodeToCanvas(buf,t.name);
+    newSession({key,name:t.name,path:t.path,veh:S.veh,srcCanvas:canvas,info});stMsg('');
+  }catch(e){stMsg('');log('Fehler beim Laden von '+t.name+': '+e.message,'err');alert('Textur konnte nicht geladen werden:\n'+e.message);}
+}
+$('#btnOpenFile').onclick=()=>$('#fileOpen').click();
+$('#fileOpen').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const{canvas,info}=await decodeToCanvas(await f.arrayBuffer(),f.name);newSession({key:'local/'+f.name+Date.now(),name:f.name,path:f.name,veh:null,srcCanvas:canvas,info});}
+  catch(err){log('Fehler: '+err.message,'err');alert('Datei konnte nicht geladen werden:\n'+err.message);}
+};
+function newSession({key,name,path,veh,srcCanvas,info}){
+  const W=srcCanvas.width,H=srcCanvas.height;
+  const s={key,name,path,veh,info,W,H,layers:[],activeId:0,lc:1,sel:null,hist:[],hi:-1,modified:false,zoom:1,panX:0,panY:0,
+    holder:el('div',{className:'holder'}),ui:mkCanvas(W,H),strokeC:null};
+  s.holder.style.width=W+'px';s.holder.style.height=H+'px';
+  const bl=makeLayer(s,'Original',srcCanvas);bl.isBase=true;
+  bl.paintSnap=srcCanvas.getContext('2d').getImageData(0,0,W,H);
+  const l1=makeLayer(s,'Ebene 1');
+  s.layers.push(bl,l1);s.activeId=l1.id;
+  s.hist.push(entryOf(s));s.hi=0;
+  S.sessions.set(key,s);activate(s,true);log('Geöffnet: '+path+' ('+W+'×'+H+')');
+}
+function rebuildStage(s){s.holder.replaceChildren(...s.layers.map(l=>l.div),s.ui);stage.replaceChildren(s.holder);}
+function activate(s,fit){
+  S.cur=s;rebuildStage(s);stage.style.width=s.W+'px';stage.style.height=s.H+'px';$('#empty').hidden=true;
+  if(fit)fitView();else applyTransform();
+  renderSessions();renderTextures();renderLayersPanel();render();$('#stSize').textContent=s.name+' · '+s.W+'×'+s.H;
+}
+function renderSessions(){
+  const d=$('#sessions');d.replaceChildren();
+  if(!S.sessions.size)d.textContent='–';
+  for(const s of S.sessions.values()){
+    const it=el('div',{className:'item'+(s===S.cur?' sel':''),title:s.key});
+    it.append(el('span',{textContent:(s.modified?'● ':'')+s.name}));
+    const x=el('button',{textContent:'✕',title:'Schließen',style:'padding:0 6px'});
+    x.onclick=ev=>{ev.stopPropagation();if(s.modified&&!confirm('Änderungen an „'+s.name+'“ verwerfen?'))return;closeSession(s);};
+    it.append(x);it.onclick=()=>activate(s);d.append(it);
+  }
+}
+function closeSession(s){
+  S.sessions.delete(s.key);
+  if(S.cur===s){const n=[...S.sessions.values()].pop();if(n)activate(n);else{S.cur=null;stage.replaceChildren();$('#empty').hidden=false;renderLayersPanel();render();}}
+  renderSessions();renderTextures();
+}
+
+/* ---------------- Ansicht ---------------- */
+function applyTransform(){
+  const s=S.cur;if(!s)return;
+  stage.style.transform=`translate(${s.panX}px,${s.panY}px) scale(${s.zoom})`;
+  stage.classList.toggle('px',s.zoom>2);$('#stZoom').textContent=Math.round(s.zoom*100)+' %';
+}
+function fitView(){
+  const s=S.cur;if(!s)return;
+  s.zoom=Math.min(vp.clientWidth/s.W,vp.clientHeight/s.H)*0.95;
+  s.panX=(vp.clientWidth-s.W*s.zoom)/2;s.panY=(vp.clientHeight-s.H*s.zoom)/2;applyTransform();render();
+}
+$('#btnFit').onclick=fitView;
+$('#btn100').onclick=()=>{const s=S.cur;if(!s)return;s.zoom=1;s.panX=(vp.clientWidth-s.W)/2;s.panY=(vp.clientHeight-s.H)/2;applyTransform();render();};
+vp.addEventListener('wheel',e=>{
+  const s=S.cur;if(!s)return;e.preventDefault();
+  const r=vp.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,nz=clamp(s.zoom*(e.deltaY<0?1.15:1/1.15),0.02,24);
+  s.panX=mx-(mx-s.panX)*(nz/s.zoom);s.panY=my-(my-s.panY)*(nz/s.zoom);s.zoom=nz;applyTransform();render();
+},{passive:false});
+window.addEventListener('resize',()=>{if(S.cur)render();});
+function toTex(e){const s=S.cur,r=vp.getBoundingClientRect();return{x:(e.clientX-r.left-s.panX)/s.zoom,y:(e.clientY-r.top-s.panY)/s.zoom};}
+function stMsg(m){$('#stMsg').textContent=m;}
+
+/* ---------------- Objekte ---------------- */
+const mctx=mkCanvas(1,1).getContext('2d');
+const fontStr=o=>`${o.italic?'italic ':''}${o.bold?'bold ':''}${o.fs}px "${o.font}"`;
+function fitText(o){mctx.font=fontStr(o);const L=String(o.text).split('\n');o.w=Math.max(10,...L.map(l=>mctx.measureText(l).width));o.h=L.length*o.fs*1.2;}
+function newObj(type,x,y){
+  const st=S.style;
+  const o={id:S.nextId++,type,x,y,w:0,h:0,rot:0,flipX:false,flipY:false,fill:st.fill,fillOn:st.fillOn,stroke:st.stroke,strokeOn:st.strokeOn,sw:st.sw,opacity:st.opacity};
+  if(type==='rect')o.r=st.r;
+  if(type==='poly'||type==='star')o.n=st.n;
+  if(type==='text'){Object.assign(o,{text:st.text,fs:st.fs,font:st.font,bold:st.bold,italic:st.italic});fitText(o);}
+  return o;
+}
+function drawObj(ctx,o){
+  ctx.save();ctx.globalAlpha=o.opacity;ctx.translate(o.x,o.y);ctx.rotate(o.rot*Math.PI/180);ctx.scale(o.flipX?-1:1,o.flipY?-1:1);
+  const w=o.w,h=o.h;ctx.fillStyle=o.fill;ctx.strokeStyle=o.stroke;ctx.lineWidth=o.sw;ctx.lineJoin='round';
+  if(o.type==='image'){const im=S.images.get(o.imgId);if(im){ctx.imageSmoothingQuality='high';ctx.drawImage(im.src,-w/2,-h/2,w,h);}}
+  else if(o.type==='text'){
+    ctx.font=fontStr(o);ctx.textAlign='center';ctx.textBaseline='middle';const L=String(o.text).split('\n');
+    L.forEach((l,i)=>{const y=(i-(L.length-1)/2)*o.fs*1.2;if(o.strokeOn&&o.sw>0)ctx.strokeText(l,0,y);if(o.fillOn)ctx.fillText(l,0,y);});
+  }else if(o.type==='line'){
+    ctx.strokeStyle=o.fill;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-w/2,0);ctx.lineTo(w/2,0);ctx.stroke();
+  }else{
+    ctx.beginPath();
+    if(o.type==='rect')ctx.roundRect(-w/2,-h/2,w,h,Math.min(o.r||0,w/2,h/2));
+    else if(o.type==='ellipse')ctx.ellipse(0,0,w/2,h/2,0,0,Math.PI*2);
+    else{const n=o.n,pts=o.type==='star'?n*2:n;
+      for(let i=0;i<pts;i++){const a=-Math.PI/2+i*Math.PI*2/pts,k=o.type==='star'&&i%2?0.45:1;
+        const px=Math.cos(a)*w/2*k,py=Math.sin(a)*h/2*k;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();}
+    if(o.fillOn)ctx.fill();if(o.strokeOn&&o.sw>0)ctx.stroke();
+  }
+  ctx.restore();
+}
+function localToWorld(o,lx,ly){const a=o.rot*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return{x:o.x+c*lx-s*ly,y:o.y+s*lx+c*ly};}
+function worldToLocal(o,p){const a=-o.rot*Math.PI/180,c=Math.cos(a),s=Math.sin(a),dx=p.x-o.x,dy=p.y-o.y;return{x:dx*c-dy*s,y:dx*s+dy*c};}
+const hdls=o=>o.type==='line'?[[-1,0],[1,0]]:[[-1,-1],[1,-1],[1,1],[-1,1]];
+const hhOf=(o,z)=>o.type==='line'?Math.max(o.sw/2,6/z):o.h/2;
+function hit(o,p,z){
+  const l=worldToLocal(o,p),hw=o.w/2,hh=hhOf(o,z);
+  if(o.type==='ellipse')return(l.x*l.x)/(hw*hw+1e-6)+(l.y*l.y)/(hh*hh+1e-6)<=1;
+  return Math.abs(l.x)<=hw&&Math.abs(l.y)<=hh;
+}
+function handleAt(o,p,z){
+  const r=11/z,rp=localToWorld(o,0,-hhOf(o,z)-28/z);
+  if(Math.hypot(p.x-rp.x,p.y-rp.y)<=r)return{kind:'rot'};
+  for(const[sx,sy]of hdls(o)){const q=localToWorld(o,sx*o.w/2,sy*(o.type==='line'?0:o.h/2));if(Math.hypot(p.x-q.x,p.y-q.y)<=r)return{kind:'size',sx,sy};}
+  return null;
+}
+function drawSel(c,s){
+  const o=s.sel;if(!o)return;const z=s.zoom;
+  c.save();c.translate(o.x,o.y);c.rotate(o.rot*Math.PI/180);
+  const hw=o.w/2,hh=hhOf(o,z),hs=9/z;
+  c.strokeStyle='#ff9f1c';c.lineWidth=2/z;c.setLineDash([8/z,5/z]);c.strokeRect(-hw,-hh,o.w,hh*2);c.setLineDash([]);
+  c.fillStyle='#fff';
+  for(const[sx,sy]of hdls(o)){const x=sx*hw-hs/2,y=sy*(o.type==='line'?0:hh)-hs/2;c.fillRect(x,y,hs,hs);c.strokeRect(x,y,hs,hs);}
+  c.beginPath();c.moveTo(0,-hh);c.lineTo(0,-hh-28/z);c.stroke();
+  c.beginPath();c.arc(0,-hh-28/z,6/z,0,Math.PI*2);c.fill();c.stroke();c.restore();
+}
+let raf=0;
+function render(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;const s=S.cur;if(!s)return;renderAll(s);syncProps();});}
+function drawLayerObjects(s,l){
+  if(!l.objects.length){if(l.oc){l.oc.remove();l.oc=null;}return;}
+  if(!l.oc){l.oc=mkCanvas(s.W,s.H);l.div.append(l.oc);}
+  const c=l.oc.getContext('2d');c.clearRect(0,0,s.W,s.H);for(const o of l.objects)drawObj(c,o);
+}
+function renderAll(s){
+  if(s.sel){const l=layerOf(s,s.sel);if(l)l.dirty=true;}
+  for(const l of s.layers)if(l.dirty){drawLayerObjects(s,l);l.dirty=false;}
+  const c=s.ui.getContext('2d');c.clearRect(0,0,s.W,s.H);
+  if(S.grid){c.save();c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=1/s.zoom;c.beginPath();
+    for(let x=0;x<=s.W;x+=S.gridSize){c.moveTo(x,0);c.lineTo(x,s.H);}for(let y=0;y<=s.H;y+=S.gridSize){c.moveTo(0,y);c.lineTo(s.W,y);}c.stroke();c.restore();}
+  drawSel(c,s);
+}
+
+/* ---------------- Ebenen ---------------- */
+const BLENDS=[['normal','Normal'],['multiply','Multiplizieren'],['screen','Negativ multiplizieren'],['overlay','Ineinanderkopieren'],['darken','Abdunkeln'],['lighten','Aufhellen'],['color-dodge','Farbig abwedeln'],['color-burn','Farbig nachbelichten'],['hard-light','Hartes Licht'],['soft-light','Weiches Licht'],['difference','Differenz'],['exclusion','Ausschluss'],['hue','Farbton'],['saturation','Sättigung'],['color','Farbe'],['luminosity','Luminanz']];
+for(const[v,n]of BLENDS)$('#lBlend').append(el('option',{value:v,textContent:n}));
+const blendName=b=>(BLENDS.find(x=>x[0]===b)||[0,b])[1];
+const blendOp=b=>b==='normal'?'source-over':b;
+const curLayer=s=>s.layers.find(l=>l.id===s.activeId)||s.layers[s.layers.length-1];
+const layerOf=(s,o)=>s.layers.find(l=>l.objects.includes(o));
+function canEdit(l){if(l.locked||!l.visible){stMsg('Ebene „'+l.name+'“ ist gesperrt oder ausgeblendet.');return false;}return true;}
+function makeLayer(s,name,paintCanvas){
+  const l={id:S.nextId++,name,visible:true,opacity:1,blend:'normal',locked:false,isBase:false,objects:[],paint:paintCanvas||mkCanvas(s.W,s.H),oc:null,div:el('div',{className:'lyr'}),paintSnap:null,dirty:true};
+  l.div.append(l.paint);styleLayer(l);return l;
+}
+function styleLayer(l){l.div.style.mixBlendMode=l.blend;l.div.style.opacity=l.opacity;l.div.style.display=l.visible?'':'none';}
+function layerCanvas(s,l){
+  if(!l.objects.length)return l.paint;
+  const t=mkCanvas(s.W,s.H),c=t.getContext('2d');c.drawImage(l.paint,0,0);for(const o of l.objects)drawObj(c,o);return t;
+}
+function flatten(s){
+  const c=mkCanvas(s.W,s.H),x=c.getContext('2d');
+  for(const l of s.layers){if(!l.visible)continue;x.save();x.globalAlpha=l.opacity;x.globalCompositeOperation=blendOp(l.blend);x.drawImage(layerCanvas(s,l),0,0);x.restore();}
+  return c;
+}
+function renderLayersPanel(){
+  const s=S.cur,d=$('#lyList');d.replaceChildren();
+  for(const id of['lBlend','lOp','lNew','lDup','lDel','lUp','lDown','lMerge'])$('#'+id).disabled=!s;
+  if(!s)return;
+  [...s.layers].reverse().forEach(l=>{
+    const it=el('div',{className:'item'+(l.id===s.activeId?' sel':''),title:l.name});
+    const eye=el('button',{textContent:l.visible?'👁':'—',title:'Ein-/Ausblenden'});
+    eye.onclick=ev=>{ev.stopPropagation();l.visible=!l.visible;styleLayer(l);snapshot(s,false);};
+    const lock=el('button',{textContent:l.locked?'🔒':'🔓',title:'Sperren / Entsperren'});
+    lock.onclick=ev=>{ev.stopPropagation();l.locked=!l.locked;snapshot(s,false);};
+    const nm=el('span',{textContent:l.name});
+    nm.ondblclick=ev=>{ev.stopPropagation();const n=prompt('Ebenenname:',l.name);if(n&&n.trim()){l.name=n.trim();snapshot(s,false);}};
+    it.onclick=()=>{s.activeId=l.id;if(s.sel&&layerOf(s,s.sel)!==l)s.sel=null;renderLayersPanel();render();};
+    it.append(eye,lock,nm);
+    if(l.blend!=='normal'||l.opacity<1)it.append(el('small',{textContent:(l.blend!=='normal'?blendName(l.blend)+' ':'')+(l.opacity<1?Math.round(l.opacity*100)+'%':'')}));
+    d.append(it);
+  });
+  const l=curLayer(s);$('#lBlend').value=l.blend;$('#lOp').value=Math.round(l.opacity*100);$('#oLOp').textContent=Math.round(l.opacity*100);
+}
+$('#lBlend').onchange=e=>{const s=S.cur;if(!s)return;const l=curLayer(s);l.blend=e.target.value;styleLayer(l);snapshot(s,false);};
+$('#lOp').addEventListener('input',e=>{const s=S.cur;if(!s)return;const l=curLayer(s);l.opacity=e.target.value/100;styleLayer(l);$('#oLOp').textContent=e.target.value;});
+$('#lOp').addEventListener('change',()=>{if(S.cur)snapshot(S.cur,false);});
+$('#lNew').onclick=()=>{const s=S.cur;if(!s)return;const n=makeLayer(s,'Ebene '+(++s.lc));s.layers.splice(s.layers.indexOf(curLayer(s))+1,0,n);s.activeId=n.id;rebuildStage(s);snapshot(s,false);};
+$('#lDup').onclick=()=>{
+  const s=S.cur;if(!s)return;const l=curLayer(s),n=makeLayer(s,l.name+' Kopie'),c=n.paint.getContext('2d');
+  c.drawImage(l.paint,0,0);n.paintSnap=c.getImageData(0,0,s.W,s.H);
+  n.objects=JSON.parse(JSON.stringify(l.objects)).map(o=>(o.id=S.nextId++,o));
+  Object.assign(n,{visible:l.visible,opacity:l.opacity,blend:l.blend});styleLayer(n);
+  s.layers.splice(s.layers.indexOf(l)+1,0,n);s.activeId=n.id;s.sel=null;rebuildStage(s);snapshot(s,false);
+};
+$('#lDel').onclick=()=>{
+  const s=S.cur;if(!s)return;const l=curLayer(s);
+  if(l.isBase){alert('Die Original-Ebene kann nicht gelöscht werden. Du kannst sie ausblenden.');return;}
+  if(!confirm('Ebene „'+l.name+'“ löschen?'))return;
+  const i=s.layers.indexOf(l);s.layers.splice(i,1);s.activeId=s.layers[Math.max(0,i-1)].id;s.sel=null;rebuildStage(s);snapshot(s,false);
+};
+const moveLayer=d=>()=>{const s=S.cur;if(!s)return;const l=curLayer(s),i=s.layers.indexOf(l),j=i+d;if(j<0||j>=s.layers.length)return;s.layers.splice(i,1);s.layers.splice(j,0,l);rebuildStage(s);snapshot(s,false);};
+$('#lUp').onclick=moveLayer(1);$('#lDown').onclick=moveLayer(-1);
+$('#lMerge').onclick=()=>{
+  const s=S.cur;if(!s)return;const u=curLayer(s),i=s.layers.indexOf(u);
+  if(i<1){alert('Unter dieser Ebene gibt es keine Ebene zum Verschmelzen.');return;}
+  const lo=s.layers[i-1];if(lo.locked){alert('Die darunterliegende Ebene ist gesperrt.');return;}
+  const c=lo.paint.getContext('2d');
+  for(const o of lo.objects)drawObj(c,o);lo.objects=[];lo.dirty=true;
+  if(u.visible){c.save();c.globalAlpha=u.opacity;c.globalCompositeOperation=blendOp(u.blend);c.drawImage(layerCanvas(s,u),0,0);c.restore();}
+  s.layers.splice(i,1);s.activeId=lo.id;s.sel=null;rebuildStage(s);lo.paintSnap=c.getImageData(0,0,s.W,s.H);snapshot(s,false);
+  log('Ebene mit „'+lo.name+'“ verschmolzen (Formen der unteren Ebene wurden gerastert).');
+};
+
+/* ---------------- Verlauf ---------------- */
+const NONE={};
+const entryOf=s=>({active:s.activeId,layers:s.layers.map(l=>({id:l.id,name:l.name,visible:l.visible,opacity:l.opacity,blend:l.blend,locked:l.locked,isBase:l.isBase,objs:JSON.stringify(l.objects),snap:l.paintSnap}))});
+function snapshot(s,paintChanged){
+  if(paintChanged){const l=curLayer(s);l.paintSnap=l.paint.getContext('2d').getImageData(0,0,s.W,s.H);}
+  s.hist.length=s.hi+1;s.hist.push(entryOf(s));
+  const max=Math.max(6,Math.min(40,Math.floor(500e6/(s.W*s.H*4))));
+  while(s.hist.length>max)s.hist.shift();
+  s.hi=s.hist.length-1;s.modified=true;renderSessions();renderLayersPanel();render();
+}
+function restore(s,i){
+  const e=s.hist[i];s.hi=i;const old=new Map(s.layers.map(l=>[l.id,l]));
+  s.layers=e.layers.map(d=>{
+    let l=old.get(d.id);
+    if(!l){l=makeLayer(s,d.name);l.id=d.id;l.paintSnap=NONE;}
+    Object.assign(l,{name:d.name,visible:d.visible,opacity:d.opacity,blend:d.blend,locked:d.locked,isBase:d.isBase});
+    l.objects=JSON.parse(d.objs);l.dirty=true;styleLayer(l);
+    if(l.paintSnap!==d.snap){const c=l.paint.getContext('2d');if(d.snap)c.putImageData(d.snap,0,0);else c.clearRect(0,0,s.W,s.H);l.paintSnap=d.snap;}
+    return l;
+  });
+  s.activeId=e.layers.some(d=>d.id===e.active)?e.active:s.layers[s.layers.length-1].id;
+  s.sel=null;rebuildStage(s);s.modified=true;renderSessions();renderLayersPanel();render();
+}
+const undo=()=>{const s=S.cur;if(s&&s.hi>0)restore(s,s.hi-1);};
+const redo=()=>{const s=S.cur;if(s&&s.hi<s.hist.length-1)restore(s,s.hi+1);};
+$('#btnUndo').onclick=undo;$('#btnRedo').onclick=redo;
+
+/* ---------------- Malwerkzeuge ---------------- */
+const hexRGB=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const strokeCanvas=s=>s.strokeC||(s.strokeC=mkCanvas(s.W,s.H));
+function beginStroke(s){
+  if(S.tool!=='brush')return;
+  const sc=strokeCanvas(s),l=curLayer(s);sc.style.opacity=S.style.opacity;l.div.insertBefore(sc,l.oc||null);
+}
+function seg(s,a,b){
+  const st=S.style;
+  if(S.tool==='eraser'){const c=curLayer(s).paint.getContext('2d');c.save();c.globalCompositeOperation='destination-out';c.lineCap=c.lineJoin='round';c.lineWidth=st.brush;c.strokeStyle='#000';c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x+0.01,b.y);c.stroke();c.restore();}
+  else{const c=strokeCanvas(s).getContext('2d');c.save();c.lineCap=c.lineJoin='round';c.lineWidth=st.brush;c.strokeStyle=st.fill;c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x+0.01,b.y);c.stroke();c.restore();}
+}
+function commitStroke(s){
+  const sc=s.strokeC,c=curLayer(s).paint.getContext('2d');
+  c.save();c.globalAlpha=S.style.opacity;c.drawImage(sc,0,0);c.restore();
+  sc.getContext('2d').clearRect(0,0,s.W,s.H);sc.style.opacity=1;sc.remove();
+}
+function compositeRaster(s,onlyActive){
+  const t=mkCanvas(s.W,s.H),c=t.getContext('2d');
+  for(const l of(onlyActive?[curLayer(s)]:s.layers)){
+    if(!onlyActive&&!l.visible)continue;
+    c.save();c.globalAlpha=onlyActive?1:l.opacity;c.globalCompositeOperation=onlyActive?'source-over':blendOp(l.blend);c.drawImage(l.paint,0,0);c.restore();
+  }
+  return t;
+}
+function floodFill(s,x0,y0){
+  const W=s.W,H=s.H;if(x0<0||y0<0||x0>=W||y0>=H)return false;
+  const d=compositeRaster(s,!S.fillAll).getContext('2d').getImageData(0,0,W,H).data;
+  const o=(y0*W+x0)*4,tr=d[o],tg=d[o+1],tb=d[o+2],ta=d[o+3],lim=Math.round(S.style.tol*2.55);
+  const match=i=>{const k=i*4;return Math.abs(d[k]-tr)<=lim&&Math.abs(d[k+1]-tg)<=lim&&Math.abs(d[k+2]-tb)<=lim&&Math.abs(d[k+3]-ta)<=lim;};
+  const mask=new Uint8Array(W*H),st=[x0,y0];
+  while(st.length){
+    const y=st.pop(),x=st.pop();if(mask[y*W+x]||!match(y*W+x))continue;
+    let xl=x,xr=x;while(xl>0&&!mask[y*W+xl-1]&&match(y*W+xl-1))xl--;while(xr<W-1&&!mask[y*W+xr+1]&&match(y*W+xr+1))xr++;
+    for(let k=xl;k<=xr;k++)mask[y*W+k]=1;
+    for(const ny of[y-1,y+1]){if(ny<0||ny>=H)continue;let inSpan=false;
+      for(let k=xl;k<=xr;k++){const ok=!mask[ny*W+k]&&match(ny*W+k);if(ok&&!inSpan){st.push(k,ny);inSpan=true;}else if(!ok)inSpan=false;}}
+  }
+  for(let g=0;g<S.style.grow;g++){const m2=mask.slice();
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(mask[i])continue;if((x>0&&mask[i-1])||(x<W-1&&mask[i+1])||(y>0&&mask[i-W])||(y<H-1&&mask[i+W]))m2[i]=1;}
+    mask.set(m2);}
+  const pc=curLayer(s).paint.getContext('2d'),pd=pc.getImageData(0,0,W,H),p=pd.data,[r,g,b]=hexRGB(S.style.fill),a=Math.round(S.style.opacity*255);
+  for(let i=0;i<W*H;i++)if(mask[i]){p[i*4]=r;p[i*4+1]=g;p[i*4+2]=b;p[i*4+3]=a;}
+  pc.putImageData(pd,0,0);return true;
+}
+function pickColor(s,p){
+  const x=p.x|0,y=p.y|0,out=mkCanvas(1,1),c=out.getContext('2d');
+  for(const l of s.layers){if(!l.visible)continue;
+    const t=mkCanvas(1,1),tc=t.getContext('2d');tc.drawImage(l.paint,-x,-y);tc.translate(-x,-y);for(const ob of l.objects)drawObj(tc,ob);
+    c.save();c.globalAlpha=l.opacity;c.globalCompositeOperation=blendOp(l.blend);c.drawImage(t,0,0);c.restore();}
+  const d=c.getImageData(0,0,1,1).data;
+  setStyle('fill','#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join(''));
+}
+const snapV=v=>S.snap?Math.round(v/S.gridSize)*S.gridSize:v;
+
+/* ---------------- Zeiger ---------------- */
+vp.addEventListener('pointerdown',e=>{
+  const s=S.cur;if(!s)return;vp.setPointerCapture(e.pointerId);const p=toTex(e);
+  if(e.button===1||S.tool==='hand'||S.space){drag={mode:'pan',sx:e.clientX,sy:e.clientY,px:s.panX,py:s.panY};return;}
+  if(e.button!==0)return;
+  const t=S.tool;
+  if(t==='select'){
+    const o=s.sel,ol0=o&&layerOf(s,o),h=o&&ol0&&!ol0.locked&&ol0.visible&&handleAt(o,p,s.zoom);
+    if(h){
+      if(h.kind==='rot')drag={mode:'rot',o};
+      else drag={mode:'size',o,sx:h.sx,sy:h.sy,Q:localToWorld(o,-h.sx*o.w/2,-h.sy*(o.type==='line'?0:o.h/2)),w0:o.w,h0:o.h,fs0:o.fs};
+      return;
+    }
+    let top=null,tl=null;
+    for(let i=s.layers.length-1;i>=0&&!top;i--){const l=s.layers[i];if(!l.visible||l.locked)continue;
+      for(let j=l.objects.length-1;j>=0;j--)if(hit(l.objects[j],p,s.zoom)){top=l.objects[j];tl=l;break;}}
+    if(top){s.sel=top;if(s.activeId!==tl.id){s.activeId=tl.id;renderLayersPanel();}loadStyle(top);drag={mode:'move',o:top,p0:p,ox:top.x,oy:top.y,moved:false};}else s.sel=null;
+    render();return;
+  }
+  if(t==='brush'||t==='eraser'){
+    if(!canEdit(curLayer(s)))return;beginStroke(s);drag={mode:'brush',last:p};seg(s,p,p);return;
+  }
+  if(t==='fill'){if(!canEdit(curLayer(s)))return;stMsg('Fülle …');setTimeout(()=>{if(floodFill(s,p.x|0,p.y|0))snapshot(s,true);stMsg('');},10);return;}
+  if(t==='pick'){pickColor(s,p);return;}
+  if(t==='text'){if(!canEdit(curLayer(s)))return;const o=newObj('text',snapV(p.x),snapV(p.y));curLayer(s).objects.push(o);s.sel=o;snapshot(s,false);setTool('select');$('#cText').focus();$('#cText').select();return;}
+  if(['rect','ellipse','poly','star','line'].includes(t)){
+    if(!canEdit(curLayer(s)))return;const o=newObj(t,snapV(p.x),snapV(p.y));curLayer(s).objects.push(o);s.sel=o;drag={mode:'create',o,p0:{x:snapV(p.x),y:snapV(p.y)}};render();
+  }
+});
+vp.addEventListener('pointermove',e=>{
+  const s=S.cur;if(!s)return;const p=toTex(e);$('#stPos').textContent=`x ${Math.round(p.x)}  y ${Math.round(p.y)}`;
+  if(!drag)return;
+  if(drag.mode==='pan'){s.panX=drag.px+e.clientX-drag.sx;s.panY=drag.py+e.clientY-drag.sy;applyTransform();render();}
+  else if(drag.mode==='brush'){for(const ev of(e.getCoalescedEvents?e.getCoalescedEvents():[e])){const q=toTex(ev);seg(s,drag.last,q);drag.last=q;}}
+  else if(drag.mode==='move'){const o=drag.o;o.x=snapV(drag.ox+p.x-drag.p0.x);o.y=snapV(drag.oy+p.y-drag.p0.y);drag.moved=true;render();}
+  else if(drag.mode==='rot'){const o=drag.o;let a=Math.atan2(p.y-o.y,p.x-o.x)*180/Math.PI+90;if(e.shiftKey)a=Math.round(a/15)*15;o.rot=Math.round(a*10)/10;drag.moved=true;render();}
+  else if(drag.mode==='size'){
+    const o=drag.o,{sx,sy,Q}=drag,a=-o.rot*Math.PI/180,vx=p.x-Q.x,vy=p.y-Q.y;
+    const lx=vx*Math.cos(a)-vy*Math.sin(a),ly=vx*Math.sin(a)+vy*Math.cos(a);
+    let w=Math.max(4,lx*sx),h=sy?Math.max(4,ly*sy):o.h;
+    if(sy&&(e.shiftKey||o.type==='text'||(o.type==='image'&&!e.altKey))){
+      const k=Math.max(w/drag.w0,h/drag.h0);w=drag.w0*k;h=drag.h0*k;
+      if(o.type==='text'){o.fs=Math.max(4,drag.fs0*k);fitText(o);w=o.w;h=o.h;}
+    }
+    o.w=w;o.h=h;const c=localToWorld({x:Q.x,y:Q.y,rot:o.rot},sx*w/2,sy?sy*h/2:0);o.x=c.x;o.y=c.y;drag.moved=true;render();
+  }
+  else if(drag.mode==='create'){
+    const o=drag.o,x=snapV(p.x),y=snapV(p.y);
+    if(o.type==='line'){const dx=x-drag.p0.x,dy=y-drag.p0.y;o.w=Math.hypot(dx,dy);o.rot=Math.atan2(dy,dx)*180/Math.PI;if(e.shiftKey)o.rot=Math.round(o.rot/15)*15;o.x=(x+drag.p0.x)/2;o.y=(y+drag.p0.y)/2;}
+    else{let w=Math.abs(x-drag.p0.x),h=Math.abs(y-drag.p0.y);if(e.shiftKey)w=h=Math.max(w,h);o.w=w;o.h=h;o.x=drag.p0.x+(x>=drag.p0.x?1:-1)*w/2;o.y=drag.p0.y+(y>=drag.p0.y?1:-1)*h/2;}
+    drag.moved=true;render();
+  }
+});
+vp.addEventListener('pointerup',()=>{
+  const s=S.cur;if(!s||!drag)return;const d=drag;drag=null;
+  if(d.mode==='brush'){if(S.tool==='brush')commitStroke(s);snapshot(s,true);}
+  else if(d.mode==='create'){const o=d.o;
+    if(o.w<4&&o.h<4){o.w=o.type==='line'?400:300;o.h=300;o.rot=0;o.x=d.p0.x;o.y=d.p0.y;}
+    snapshot(s,false);setTool('select');}
+  else if(d.moved)snapshot(s,false);
+});
+vp.addEventListener('dblclick',()=>{if(S.cur&&S.cur.sel&&S.cur.sel.type==='text'){$('#cText').focus();$('#cText').select();}});
+
+/* ---------------- Werkzeuge & Steuerung ---------------- */
+const TOOLS=[['select','V','Auswahl / Verschieben (V)','➤'],['hand','H','Hand – Ansicht schieben (H oder Leertaste)','✋'],['brush','B','Pinsel (B)','🖌'],['eraser','E','Radierer – entfernt Bemalung (E)','⌫'],['fill','G','Fläche füllen (G)','🪣'],['pick','I','Pipette (I)','💧'],['rect','R','Rechteck / Streifen (R)','▭'],['ellipse','O','Ellipse / Kreis (O)','◯'],['poly','P','Polygon (P)','⬠'],['star','S','Stern (S)','★'],['line','L','Linie (L)','╱'],['text','T','Text (T)','T'],['image','','Bild / Logo einfügen (auch Drag & Drop oder Strg+V)','🖼']];
+const toolBar=$('#tools');
+for(const[id,k,title,ic]of TOOLS){const b=el('button',{textContent:ic,title,id:'t_'+id});b.onclick=()=>setTool(id);toolBar.append(b);}
+function setTool(t){
+  if(t==='image'){$('#fileLogo').click();return;}
+  S.tool=t;for(const[id]of TOOLS)$('#t_'+id).classList.toggle('on',id===t);
+  vp.style.cursor=t==='hand'?'grab':t==='select'?'default':'crosshair';
+}
+setTool('select');
+
+const CTL={fill:'cFill',fillOn:'cFillOn',stroke:'cStroke',strokeOn:'cStrokeOn',sw:'cSw',opacity:'cOp',brush:'cBrush',tol:'cTol',grow:'cGrow',r:'cR',n:'cN',text:'cText',fs:'cFs',font:'cFont',bold:'cBold',italic:'cItalic'};
+function setCtl(k){const e=$('#'+CTL[k]),v=S.style[k];if(e.type==='checkbox')e.checked=v;else e.value=k==='opacity'?Math.round(v*100):v;
+  const out=$('#o'+CTL[k].slice(1));if(out)out.textContent=e.value;}
+function applyStyleToSel(k){const o=S.cur&&S.cur.sel;if(o&&k in o){o[k]=S.style[k];if(o.type==='text')fitText(o);}render();}
+function setStyle(k,v){S.style[k]=v;setCtl(k);applyStyleToSel(k);if(S.cur&&S.cur.sel)snapshot(S.cur,false);}
+function loadStyle(o){for(const k of['fill','fillOn','stroke','strokeOn','sw','opacity','r','n','text','fs','font','bold','italic'])if(k in o){S.style[k]=o[k];setCtl(k);}}
+for(const k in CTL){
+  const e=$('#'+CTL[k]),isChk=e.type==='checkbox',isSel=e.tagName==='SELECT',isNum=['sw','opacity','brush','tol','grow','r','n','fs'].includes(k);
+  const read=()=>isChk?e.checked:isNum?(k==='opacity'?e.value/100:+e.value):e.value;
+  const live=()=>{S.style[k]=read();const out=$('#o'+CTL[k].slice(1));if(out)out.textContent=e.value;applyStyleToSel(k);};
+  e.addEventListener('input',live);
+  e.addEventListener('change',()=>{live();if(S.cur&&S.cur.sel&&!['brush','tol','grow'].includes(k))snapshot(S.cur,false);});
+}
+for(const c of['#ffffff','#000000','#d62828','#f77f00','#fcbf49','#2a9d8f','#0077b6','#1d3557','#6a994e','#9d4edd','#8d99ae','#e5e5e5']){
+  const i=el('i',{title:c});i.style.background=c;i.onclick=()=>setStyle('fill',c);i.oncontextmenu=e=>{e.preventDefault();setStyle('stroke',c);};$('#swatches').append(i);
+}
+$('#gridOn').onchange=e=>{S.grid=e.target.checked;render();};
+$('#gridSize').oninput=e=>{S.gridSize=clamp(+e.target.value||128,8,1024);render();};
+$('#snapOn').onchange=e=>{S.snap=e.target.checked;};
+
+function syncProps(){
+  const s=S.cur,o=s&&s.sel,act=document.activeElement&&document.activeElement.id;
+  for(const[id,k]of[['pX','x'],['pY','y'],['pW','w'],['pH','h'],['pR','rot']]){const e=$('#'+id);e.disabled=!o;if(o&&act!==id)e.value=Math.round(o[k]*10)/10;if(!o)e.value='';}
+  const L=$('#layers');L.replaceChildren();
+  if(s)[...curLayer(s).objects].reverse().forEach(o2=>{
+    const names={rect:'Rechteck',ellipse:'Ellipse',poly:'Polygon',star:'Stern',line:'Linie',text:'Text',image:'Bild'};
+    const label=names[o2.type]+(o2.type==='text'?': '+String(o2.text).split('\n')[0].slice(0,18):o2.type==='image'?': '+(S.images.get(o2.imgId)?.name||''):'');
+    const it=el('div',{className:'item'+(o2===s.sel?' sel':''),textContent:label});it.onclick=()=>{s.sel=o2;loadStyle(o2);render();};L.append(it);
+  });
+}
+for(const[id,k]of[['pX','x'],['pY','y'],['pW','w'],['pH','h'],['pR','rot']]){
+  const e=$('#'+id);
+  e.addEventListener('input',()=>{const o=S.cur&&S.cur.sel;if(!o||e.value==='')return;const v=+e.value;
+    if(o.type==='text'&&k==='w'){if(v>4){o.fs=Math.max(4,o.fs*v/o.w);fitText(o);}}
+    else if(o.type==='text'&&k==='h'){}
+    else o[k]=(k==='w'||k==='h')?Math.max(1,v):v;render();});
+  e.addEventListener('change',()=>{if(S.cur&&S.cur.sel)snapshot(S.cur,false);});
+}
+const withSel=f=>()=>{const s=S.cur,o=s&&s.sel;if(!o)return;const l=layerOf(s,o);if(!l||l.locked)return;f(s,o,l);l.dirty=true;snapshot(s,false);};
+$('#bDup').onclick=withSel((s,o,l)=>{const c=JSON.parse(JSON.stringify(o));c.id=S.nextId++;c.x+=40;c.y+=40;l.objects.push(c);s.sel=c;});
+$('#bDel').onclick=withSel((s,o,l)=>{l.objects=l.objects.filter(q=>q!==o);s.sel=null;});
+$('#bFront').onclick=withSel((s,o,l)=>{l.objects=l.objects.filter(q=>q!==o);l.objects.push(o);});
+$('#bBack').onclick=withSel((s,o,l)=>{l.objects=l.objects.filter(q=>q!==o);l.objects.unshift(o);});
+$('#bFlipH').onclick=withSel((s,o)=>{o.flipX=!o.flipX;});
+$('#bFlipV').onclick=withSel((s,o)=>{o.flipY=!o.flipY;});
+$('#cAllLay').onchange=e=>{S.fillAll=e.target.checked;};
+
+/* ---------------- Logos / Bilder ---------------- */
+async function addLogo(file){
+  const s=S.cur;if(!s){alert('Bitte zuerst eine Textur öffnen.');return;}
+  const ll=curLayer(s);if(!canEdit(ll))return;
+  try{
+    const e=ext(file.name||'x.png');let src,w,h;
+    if(e==='tga'||e==='dds'){const r=await decodeToCanvas(await file.arrayBuffer(),file.name);src=r.canvas;w=src.width;h=src.height;}
+    else if(e==='svg'){src=await new Promise((res,rej)=>{const u=URL.createObjectURL(file),i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('SVG nicht lesbar'));i.src=u;});w=src.naturalWidth||512;h=src.naturalHeight||512;}
+    else{src=await createImageBitmap(file);w=src.width;h=src.height;}
+    const id=S.nextId++;S.images.set(id,{src,w,h,name:file.name||'Bild'});
+    const k=Math.min(1,s.W*0.4/w,s.H*0.4/h),r=vp.getBoundingClientRect();
+    const cx=clamp((r.width/2-s.panX)/s.zoom,0,s.W),cy=clamp((r.height/2-s.panY)/s.zoom,0,s.H);
+    const o=newObj('image',cx,cy);o.imgId=id;o.w=w*k;o.h=h*k;ll.objects.push(o);s.sel=o;snapshot(s,false);setTool('select');
+  }catch(err){log('Bild konnte nicht eingefügt werden: '+err.message,'err');}
+}
+$('#fileLogo').onchange=async e=>{for(const f of e.target.files)await addLogo(f);e.target.value='';};
+vp.addEventListener('dragover',e=>e.preventDefault());
+vp.addEventListener('drop',async e=>{e.preventDefault();for(const f of e.dataTransfer.files)await addLogo(f);});
+window.addEventListener('paste',async e=>{for(const it of(e.clipboardData?.items||[]))if(it.type.startsWith('image/')){const f=it.getAsFile();if(f)await addLogo(f);}});
+
+/* ---------------- Tastatur ---------------- */
+window.addEventListener('keydown',e=>{
+  const typing=/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)&&e.target.type!=='checkbox'&&e.target.type!=='range';
+  if(e.ctrlKey||e.metaKey){const k=e.key.toLowerCase();if(typing&&k!=='z'&&k!=='y')return;
+    if(k==='z'){e.preventDefault();e.shiftKey?redo():undo();}else if(k==='y'){e.preventDefault();redo();}else if(k==='d'){e.preventDefault();$('#bDup').click();}
+    return;}
+  if(typing)return;
+  if(e.code==='Space'){S.space=true;vp.style.cursor='grab';e.preventDefault();return;}
+  const s=S.cur;
+  if((e.key==='Delete'||e.key==='Backspace')&&s&&s.sel){$('#bDel').click();return;}
+  if(e.key==='Escape'&&s){s.sel=null;render();return;}
+  if(s&&s.sel&&e.key.startsWith('Arrow')){const d=e.shiftKey?10:1,o=s.sel;if(e.key==='ArrowLeft')o.x-=d;if(e.key==='ArrowRight')o.x+=d;if(e.key==='ArrowUp')o.y-=d;if(e.key==='ArrowDown')o.y+=d;e.preventDefault();render();return;}
+  const m={v:'select',h:'hand',b:'brush',e:'eraser',g:'fill',i:'pick',r:'rect',o:'ellipse',p:'poly',s:'star',l:'line',t:'text'}[e.key.toLowerCase()];if(m)setTool(m);
+});
+window.addEventListener('keyup',e=>{if(e.code==='Space'){S.space=false;setTool(S.tool);}});
+window.addEventListener('beforeunload',e=>{if([...S.sessions.values()].some(s=>s.modified)){e.preventDefault();e.returnValue='';}});
+
+/* ---------------- Speichern ---------------- */
+function download(blob,name){const a=el('a',{href:URL.createObjectURL(blob),download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}
+async function exists(dir,name){try{await dir.getFileHandle(name);return true;}catch{return false;}}
+async function saveSessions(list){
+  if(!list.length){alert('Es gibt nichts zu speichern.');return;}
+  const rname=$('#rname').value.trim().replace(/[\\/:*?"<>|]/g,'_');
+  const needName=list.some(s=>s.veh);if(needName&&!rname){alert('Bitte einen Repaint-Namen angeben.');return;}
+  stMsg('Speichere …');
+  try{
+    // Konflikte prüfen
+    const conflicts=[];
+    for(const s of list){if(!s.veh)continue;
+      const parts=s.path.split('/'),rel=parts.length>1?parts.slice(1):parts;
+      try{let d=await(await s.veh.handle.getDirectoryHandle('Texture')).getDirectoryHandle(rname);
+        for(const p of rel.slice(0,-1))d=await d.getDirectoryHandle(p);
+        if(await exists(d,rel[rel.length-1]))conflicts.push(s.veh.name+'/'+rname+'/'+rel.join('/'));}catch{}}
+    if(conflicts.length&&!confirm('Diese Dateien existieren schon und werden überschrieben:\n\n'+conflicts.slice(0,8).join('\n')+(conflicts.length>8?'\n…':'')+'\n\nFortfahren?')){stMsg('');return;}
+    const copied=new Set();
+    for(const s of list){
+      const blob=await encodeCanvas(flatten(s),s.name,s.info);
+      if(!s.veh){download(blob,s.name);log('Heruntergeladen: '+s.name,'ok');s.modified=false;continue;}
+      const parts=s.path.split('/'),rel=parts.length>1?parts.slice(1):parts;
+      const tex=await s.veh.handle.getDirectoryHandle('Texture');
+      const rdir=await tex.getDirectoryHandle(rname,{create:true});
+      let d=rdir;for(const p of rel.slice(0,-1))d=await d.getDirectoryHandle(p,{create:true});
+      const w=await(await d.getFileHandle(rel[rel.length-1],{create:true})).createWritable();await w.write(blob);await w.close();
+      if($('#copyCfg').checked&&parts.length>1&&!copied.has(s.veh.name+'/'+parts[0])){
+        copied.add(s.veh.name+'/'+parts[0]);
+        try{const src=await tex.getDirectoryHandle(parts[0]);
+          for await(const[n,h]of src.entries()){if(h.kind==='file'&&['cfg','txt','ini'].includes(ext(n))&&!(await exists(rdir,n))){
+            const data=await(await h.getFile()).arrayBuffer();const ww=await(await rdir.getFileHandle(n,{create:true})).createWritable();await ww.write(data);await ww.close();log('Konfig übernommen: '+n);}}}catch(e){log('Konfig-Kopie übersprungen: '+e.message,'err');}
+      }
+      log('Gespeichert: Vehicles/'+s.veh.name+'/Texture/'+rname+'/'+rel.join('/'),'ok');s.modified=false;
+    }
+  }catch(e){
+    log('Speichern fehlgeschlagen: '+e.message,'err');
+    alert('Speichern fehlgeschlagen:\n'+e.message+'\n\nFalls OMSI unter „Programme (x86)“ liegt und Windows den Schreibzugriff blockiert: Browser als Administrator starten oder die Datei per „Einzelne Textur“ herunterladen und manuell kopieren.');
+  }
+  stMsg('');renderSessions();renderTextures();
+}
+$('#bSave').onclick=()=>S.cur&&saveSessions([S.cur]);
+$('#bSaveAll').onclick=()=>saveSessions([...S.sessions.values()].filter(s=>s.modified));
+
+renderVehicles();renderSessions();renderLayersPanel();syncProps();
+if(!window.showDirectoryPicker)log('Hinweis: Für den automatischen OMSI-Ordnerzugriff bitte Chrome oder Edge am PC nutzen.','err');
+</script>
+</body>
+</html>
+
+    Click "OMSI-Ordner wählen …" (Choose OMSI Folder) at the top and select your main OMSI 2 directory (e.g., .../steamapps/common/OMSI 2).
+
+    Select a vehicle from the left sidebar, click on a texture to open it in the viewport, and start repainting!
+
+    Alternatively, use "Einzelne Textur öffnen …" to edit standalone texture files instantly.
