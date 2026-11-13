@@ -1,0 +1,591 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Hof-Werkstatt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=DotGothic16&display=swap">
+<style>
+/* Layout: Zielschild-Kopfzeile, darunter Reiter; Arbeitsfläche als Tabellen- bzw. Zweispalten-Editor, IBIS-Vorschau als Punktmatrix-Display */
+:root{
+  --bg:#EDEFEA; --panel:#FFFFFF; --ink:#18202B; --muted:#586272; --line:#D3D8D0;
+  --accent:#1B5EC9; --accent-ink:#FFFFFF; --warn:#B45309; --err:#B42318; --ok:#1E7A46;
+  --led-bg:#0D1015; --led:#FFB020; --led-dim:#6b4d10;
+  --f-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+  --f-dot:'DotGothic16','IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11151B; --panel:#1A2029; --ink:#E7EAEE; --muted:#9AA5B4; --line:#2B3340;
+  --accent:#6FA3FF; --accent-ink:#0B1220; --warn:#F5A524; --err:#FF8078; --ok:#5CC98A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11151B; --panel:#1A2029; --ink:#E7EAEE; --muted:#9AA5B4; --line:#2B3340;
+  --accent:#6FA3FF; --accent-ink:#0B1220; --warn:#F5A524; --err:#FF8078; --ok:#5CC98A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{width:100%;max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--led-bg);border-bottom:3px solid var(--led)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:12px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand h1{margin:0;font:600 30px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase;color:var(--led)}
+.brand .ext{font:500 13px var(--f-mono);color:var(--led-dim);border:1px solid var(--led-dim);padding:1px 6px;border-radius:3px}
+.lang{display:flex;align-items:center;gap:8px;color:#C9CED6;font-size:13px}
+.lang select{background:#1c222c;color:#F1F3F5;border:1px solid #3a4352;border-radius:4px;padding:5px 8px;font:inherit}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;padding-top:14px;border-bottom:1px solid var(--line)}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);font:600 17px var(--f-display);letter-spacing:.05em;text-transform:uppercase;padding:8px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs button:hover{color:var(--ink)}
+.badge{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:10px;font:600 12px var(--f-body);background:var(--warn);color:#fff;letter-spacing:0;text-transform:none}
+.badge.err{background:var(--err)}
+main{padding-block:20px 48px}
+h2{font:600 26px/1.1 var(--f-display);letter-spacing:.03em;text-transform:uppercase;margin:0 0 4px;text-wrap:balance}
+h3{font:600 18px var(--f-display);letter-spacing:.05em;text-transform:uppercase;margin:0 0 10px;color:var(--muted)}
+p.intro{margin:0 0 16px;color:var(--muted);max-width:70ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px 18px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-weight:600;font-size:13px}
+.field small{color:var(--muted);font-size:12px;line-height:1.4}
+input[type=text],input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 9px;width:100%;min-width:0}
+input[type=number]{width:90px}
+textarea{font-family:var(--f-mono);font-size:13px;resize:vertical}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{font:500 14px var(--f-body);background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:7px 13px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.danger{color:var(--err)}
+.btn.sm{padding:3px 9px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.banner{background:color-mix(in srgb,var(--accent) 12%,var(--panel));border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:6px;padding:10px 14px;margin-bottom:16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:14px}
+.gridwrap{overflow:auto;max-height:68vh;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table.g{border-collapse:separate;border-spacing:0;font:400 13px var(--f-mono)}
+table.g th{position:sticky;top:0;z-index:2;background:var(--panel);text-align:left;font:600 12px var(--f-body);padding:6px 8px;border-bottom:2px solid var(--line);white-space:nowrap;min-width:140px}
+table.g th small{display:block;font-weight:400;color:var(--muted);font-size:11px}
+table.g td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:0;background:var(--panel)}
+table.g td input[type=text]{border:0;border-radius:0;background:transparent;font:inherit;padding:7px 8px;width:100%}
+table.g td input.over{background:color-mix(in srgb,var(--warn) 22%,transparent)}
+table.g .s1,table.g .s2,table.g .s3,table.g .s4{position:sticky;z-index:1;background:var(--panel)}
+table.g th.s1,table.g th.s2,table.g th.s3,table.g th.s4{z-index:3;min-width:0}
+table.g .s1{left:0;width:36px;min-width:36px;text-align:center}
+table.g .s2{left:36px;width:44px;min-width:44px;text-align:center}
+table.g .s3{left:80px;width:76px;min-width:76px}
+table.g .s4{left:156px;width:180px;min-width:180px;border-right:2px solid var(--line)}
+table.g.st .s2{left:36px;width:200px;min-width:200px;text-align:left;border-right:2px solid var(--line)}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:6px}
+.x:hover{color:var(--err)}
+.split{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:780px){.split{grid-template-columns:1fr}}
+.rlist{display:flex;flex-direction:column;gap:4px}
+.rlist button{display:flex;align-items:baseline;gap:8px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 10px;cursor:pointer;font:inherit;color:var(--ink)}
+.rlist button[aria-current="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.rlist .ln{font:700 20px var(--f-display);min-width:34px}
+.rlist .rn{color:var(--muted);font:12px var(--f-mono)}
+.srow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:6px;align-items:center;margin-bottom:4px}
+.srow .no{color:var(--muted);font:12px var(--f-mono);text-align:right}
+.srow input.miss{border-color:var(--err)}
+.srow .acts{display:flex}
+.led{background:var(--led-bg);border:1px solid #000;border-radius:6px;padding:16px;display:grid;gap:14px;color:var(--led)}
+.led .lbl{font:500 11px var(--f-mono);color:var(--led-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.mx{display:flex;gap:12px;align-items:center}
+.mx .lnum{font:400 44px var(--f-dot);min-width:2.2ch;text-align:center;border-right:2px solid var(--led-dim);padding-right:12px}
+.mx pre{margin:0;font:400 clamp(17px,4.4vw,28px)/1.2 var(--f-dot);white-space:pre;overflow:hidden;letter-spacing:.02em}
+.lcd{font:400 18px var(--f-dot);white-space:pre-wrap;overflow-wrap:anywhere}
+.cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.chk{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.chk li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.chk li::before{content:"";flex:none;width:10px;height:10px;margin-top:6px;border-radius:2px;background:var(--warn)}
+.chk li.err::before{background:var(--err)}
+.chk li.ok::before{background:var(--ok)}
+.hint{font-size:13px;color:var(--muted)}
+.hint code,p code{font:12px var(--f-mono);background:var(--bg);padding:1px 5px;border-radius:3px}
+@media (prefers-reduced-motion:no-preference){.btn,nav.tabs button{transition:border-color .12s,color .12s}}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand"><h1>Hof-Werkstatt</h1><span class="ext">.hof</span></div>
+  <label class="lang"><span id="langLbl"></span><select id="lang"></select></label>
+</div></header>
+<div class="wrap"><nav class="tabs" id="tabs" role="tablist"></nav></div>
+<main class="wrap" id="view"></main>
+
+<script>
+/* ================= LOGIC (Format nach OMSI-Wiki: Hofdatei) ================= */
+const TAB='\t';
+const pad2=n=>String(parseInt(n,10)||0).padStart(2,'0');
+const clean=s=>String(s==null?'':s).replace(/[\t\r\n]+/g,' ');
+const routeCode=r=>String(r.line||'').trim()+pad2(r.route);
+const newState=()=>({name:'',servicetrip:'',gs:{announce:'',rollband:'',side:'',c900:'',c800:'',c500:''},scT:7,scB:4,termini:[],stops:[],routes:[],example:false});
+
+function genHof(S,fmt){
+  const L=[],nT=S.scT,nB=S.scB,g=S.gs;
+  L.push('[name]',clean(S.name),'','[servicetrip]',clean(S.servicetrip),'');
+  const codes=[g.c900,g.c800,g.c500];
+  const gl=[g.announce,g.rollband,g.side];
+  if(codes.some(c=>String(c).trim()!=='')) codes.forEach(c=>gl.push(String(c).trim()===''?'0':c));
+  L.push('[global_strings]',String(gl.length),...gl.map(clean),'');
+  L.push('stringcount_terminus',String(nT),'','stringcount_busstop',String(nB),'');
+  const ts=(r,n)=>Array.from({length:n},(_,i)=>clean(r.strings[i]));
+  if(fmt==='list'){
+    L.push('[addterminus_list]');
+    S.termini.forEach(r=>L.push((r.allexit?'{ALLEX}':'')+TAB+clean(r.code)+TAB+clean(r.name)+ts(r,nT).map(s=>TAB+s).join('')));
+    L.push('[end]','','[addbusstop_list]');
+    S.stops.forEach(r=>L.push(clean(r.name)+ts(r,nB).map(s=>TAB+s).join('')));
+    L.push('[end]','');
+  }else{
+    S.termini.forEach(r=>{L.push(r.allexit?'[addterminus_allexit]':'[addterminus]',clean(r.code),clean(r.name),...ts(r,nT));});
+    L.push('');
+    S.stops.forEach(r=>{L.push('[addbusstop]',clean(r.name),...ts(r,nB));});
+    L.push('');
+  }
+  S.routes.forEach(r=>{
+    L.push('[infosystem_trip]',routeCode(r),clean(r.desc),clean(r.dest),clean(r.line),'','[infosystem_busstop_list]',String(r.stops.length),...r.stops.map(clean),'');
+  });
+  return L.join('\r\n');
+}
+
+function parseHof(text){
+  const lines=text.replace(/^﻿/,'').split(/\r\n|\n|\r/);
+  const R=newState(); let i=0,unknown=0,lastRoute=null;
+  const nne=()=>{while(i<lines.length&&!lines[i].trim())i++;return i<lines.length?lines[i++].trim():'';};
+  const raw=()=>i<lines.length?lines[i++]:'';
+  const strs=n=>{const a=[];while(a.length<n&&i<lines.length&&!/^\[/.test(lines[i]))a.push(lines[i++]);while(a.length<n)a.push('');return a;};
+  while(i<lines.length){
+    const ln=lines[i++]; if(!ln||/^\s/.test(ln))continue;
+    const l=ln.trim(),lo=l.toLowerCase(); let m;
+    if(lo==='[name]')R.name=nne();
+    else if(lo==='[servicetrip]')R.servicetrip=nne();
+    else if(lo==='[global_strings]'){
+      const n=parseInt(nne(),10)||0,a=[];for(let k=0;k<n;k++)a.push(raw().trim());
+      const z=v=>(v==null||v==='0')?'':v;
+      R.gs={announce:a[0]||'',rollband:a[1]||'',side:a[2]||'',c900:z(a[3]),c800:z(a[4]),c500:z(a[5])};
+    }
+    else if(m=/^\[?stringcount_(terminus|busstop)\]?\s*(\d+)?$/i.exec(l)){
+      const v=m[2]!==undefined?+m[2]:(parseInt(nne(),10)||0);
+      if(m[1].toLowerCase()==='terminus')R.scT=v;else R.scB=v;
+    }
+    else if(lo==='[addterminus]'||lo==='[addterminus_allexit]'){
+      const code=nne(),name=nne();R.termini.push({allexit:lo.endsWith('allexit]'),code,name,strings:strs(R.scT)});
+    }
+    else if(lo==='[addbusstop]'){const name=nne();R.stops.push({name,strings:strs(R.scB)});}
+    else if(lo==='[addterminus_list]'||lo==='[addbusstop_list]'){
+      const term=lo==='[addterminus_list]';
+      while(i<lines.length){
+        const x=lines[i++]; if(/^\s*\[end\]/i.test(x))break; if(!x.trim())continue;
+        const c=x.split('\t');
+        if(term)R.termini.push({allexit:/allex/i.test(c[0]),code:(c[1]||'').trim(),name:(c[2]||'').trim(),strings:c.slice(3)});
+        else R.stops.push({name:(c[0]||'').trim(),strings:c.slice(1)});
+      }
+    }
+    else if(lo==='[infosystem_trip]'){
+      const id=nne(),desc=raw(),dest=nne();nne();
+      let j=i;while(j<lines.length&&!lines[j].trim())j++;
+      if(j<lines.length&&!/^\[/.test(lines[j]))i=j+1;
+      const idd=id.replace(/\D/g,'');
+      lastRoute={line:idd.length>2?idd.slice(0,-2):'',route:idd.slice(-2),desc:desc.trim(),dest,stops:[]};
+      R.routes.push(lastRoute);
+    }
+    else if(lo==='[infosystem_busstop_list]'){
+      const n=parseInt(nne(),10)||0,a=[];for(let k=0;k<n;k++)a.push(nne());
+      if(lastRoute)lastRoute.stops=a;
+    }
+    else if(/^\[/.test(l))unknown++;
+  }
+  R.termini.forEach(r=>{r.strings=r.strings.map(s=>s.replace(/\r$/,''));});
+  R.unknown=unknown;
+  return R;
+}
+const LIM_T={0:16,1:16,2:16,3:16,5:20,8:15,9:4,22:6};
+const LIM_B={0:16,1:20,2:20,3:20};
+function validate(S,tr){
+  const out=[],add=(lvl,k,v)=>out.push({lvl,msg:tr(k,v)});
+  if(!S.name.trim())add('err','vNoName');
+  const st=S.termini.find(x=>x.name===S.servicetrip);
+  if(!S.servicetrip.trim())add('warn','vNoService');
+  else if(!st)add('err','vService',{n:S.servicetrip});
+  else if(!st.allexit)add('warn','vServiceAllex',{n:S.servicetrip});
+  const seen={};
+  S.termini.forEach(r=>{
+    const c=String(r.code).trim();
+    if(!/^\d{1,4}$/.test(c))add('err','vCodeBad',{n:r.name||'?',c});
+    else if(seen[c]!==undefined&&seen[c]!==r.name)add('err','vCodeDup',{c,a:seen[c],b:r.name});
+    else seen[c]=r.name;
+    if(!r.name.trim())add('err','vTermNoName',{c});
+    for(const k in LIM_T){if(k<S.scT&&(r.strings[k]||'').length>LIM_T[k])add('warn','vLen',{n:r.name,s:k,m:LIM_T[k]});}
+  });
+  S.stops.forEach(r=>{for(const k in LIM_B){if(k<S.scB&&(r.strings[k]||'').length>LIM_B[k])add('warn','vLen',{n:r.name,s:k,m:LIM_B[k]});}});
+  const stopNames=new Set(S.stops.map(x=>x.name));
+  S.termini.filter(r=>!r.allexit&&r.name.trim()&&!stopNames.has(r.name)).forEach(r=>add('warn','vTermStop',{n:r.name}));
+  const ids={};
+  S.routes.forEach(r=>{
+    const id=routeCode(r),lab=r.line+'/'+pad2(r.route);
+    if(!r.line)add('err','vNoLine',{r:lab});
+    if(ids[id])add('err','vRouteDup',{r:id});ids[id]=1;
+    if(!S.termini.some(x=>String(x.code).trim()===String(r.dest).trim()))add('err','vDestMiss',{r:lab});
+    if(r.stops.length<2)add('warn','vRouteShort',{r:lab});
+    [...new Set(r.stops.filter(n=>!stopNames.has(n)))].forEach(n=>add('err','vStopMiss',{r:lab,n}));
+  });
+  return out;
+}
+/* ================= ENDE LOGIC ================= */
+
+/* ---------- Texte ---------- */
+const I={
+de:{
+tabGen:'Allgemein',tabTer:'Ziele',tabStp:'Haltestellen',tabRte:'Routen',tabIbis:'IBIS-Test',tabFile:'Datei',lang:'Sprache',
+gen_title:'Grunddaten des Hofs',gen_intro:'Der Hof sagt dem Bus, was er an Zielanzeigen, im IBIS und in den Ansagen zeigen soll. Alle Eingaben speichern sich automatisch in diesem Browser.',
+hofName:'Name des Hofs',hofNameH:'Erscheint in OMSI in der Busauswahl und muss zum Eintrag in der AI-List passen.',
+service:'Betriebsfahrt-Ziel (servicetrip)',serviceH:'Ziel, das der Bus ohne Linie zeigt. Es muss unter Ziele stehen und „Kein Einstieg“ haben.',
+folders:'Ordner und Buchstabencodes',fAnn:'Ansagen-Ordner',fAnnH:'Unterordner in Vehicles\\Announcements',fRol:'Rollband-Ordner',fRolH:'Unterordner in Vehicles\\Anzeigen\\<Fahrzeug>',fSide:'Seitenschild-Ordner',fSideH:'Unterordner in Vehicles\\Anzeigen\\Seitenschilder',
+c9:'Buchstabencode 900er-Linien',c8:'Buchstabencode 800er-Linien',c5:'Buchstabencode 500er-Linien',cH:'Zahl 01 bis 99 aus der Matrix.osc des Busses. Leer lassen, wenn nicht gebraucht.',
+counts:'Anzahl Strings',scT:'Strings pro Ziel',scB:'Strings pro Haltestelle',scH:'OMSI liest nur so viele Strings. Gezählt wird ab 0.',presetStd:'Standard (7 / 4)',presetUni:'Universell (26 / 9)',
+ter_title:'Ziele (Endstellen)',ter_intro:'Jede Zeile ist ein Fahrtziel mit IBIS-Code. Jeder Code darf nur zu einem Namen gehören. Der Name muss dem Haltestellenwürfel oder dem Fahrplan-Ziel entsprechen.',
+add:'Hinzufügen',del:'Zeile löschen',fillT:'Leere Strings aus Namen füllen',filter:'Filtern …',colAllex:'Kein Einstieg',colCode:'Code',colName:'Name',colStop:'Haltestelle',
+stp_title:'Haltestellen',stp_intro:'Alle Haltestellen, die ein Spielerbus bedienen kann, auch die Endhaltestellen. Der Name entspricht dem Namen im Editor und dem Dateinamen der Ansage (ohne .wav).',
+rte_title:'Routen',rte_intro:'Eine Route ist eine Richtung einer Linie. Der Verlauf im Spiel kommt aus dem Fahrplan, die Liste hier steuert Anzeige und Ansagen.',
+newRoute:'Neue Route',noRoutes:'Noch keine Route.',line:'Linie',routeNo:'Route (00–99)',desc:'Beschreibung',dest:'Ziel',destNone:'– Ziel wählen –',stopsList:'Haltestellen in Fahrtreihenfolge',addStop:'Haltestelle anhängen',pasteLabel:'Haltestellen einfügen (eine pro Zeile)',pasteBtn:'Liste übernehmen',reverse:'Gegenrichtung erzeugen',delRoute:'Route löschen',up:'Nach oben',down:'Nach unten',remove:'Entfernen',ibisInput:'IBIS-Eingabe',
+ibis_title:'IBIS-Test',ibis_intro:'Gib wie im Bus Linie und Route ein, zum Beispiel 20100 für Linie 2, Route 01. Zeigt, was die Hofdatei daraus macht.',
+ibisIn:'Linie/Kurs',destIn:'Ziel-Code (optional)',front:'Front und Seite',ibis1:'IBIS 1',ibis2:'IBIS 2',roll:'Rollband',interior:'Innenanzeige',noMatch:'Keine Route mit diesem Code. Gib einen Ziel-Code ein, um nur das Ziel zu sehen.',routeFound:'Route gefunden',prev:'Zurück',next:'Weiter',stopNow:'Aktuelle Haltestelle',noStops:'Diese Route hat keine Haltestellen.',unknownDest:'Unbekanntes Ziel',
+file_title:'Datei',fmt:'Format',fmt2:'OMSI 2 (Tabellenlisten)',fmt1:'OMSI 1 und 2 (zeilenweise)',copy:'Kopieren',copied:'Kopiert',copyFail:'Markiert. Mit Strg+C kopieren.',
+saveHint:'Kopiere den Text in den Windows-Editor und speichere ihn als „Alle Dateien“ mit der Endung .hof und der Kodierung ANSI (nicht UTF-8) direkt in den Ordner des Busses. Änderungen gelten erst nach einem Neustart von OMSI.',
+importT:'Vorhandene Hofdatei öffnen',importHint:'Datei wählen oder Inhalt einfügen. Aktuelle Daten werden ersetzt.',pickFile:'.hof-Datei wählen',applyImport:'Importieren',undo:'Rückgängig',imported:'Importiert: {a} Ziele, {b} Haltestellen, {c} Routen.',
+newEmpty:'Neuen leeren Hof anlegen',sure:'Sicher? Nochmal klicken',exampleBanner:'Das sind Beispieldaten. Überschreibe sie oder starte leer.',clearEx:'Leer starten',
+problems:'Prüfung',noProblems:'Keine Probleme gefunden.',
+vNoName:'Der Hof hat keinen Namen.',vNoService:'Kein Betriebsfahrt-Ziel gesetzt.',vService:'Betriebsfahrt-Ziel „{n}“ steht nicht in der Zielliste.',vServiceAllex:'„{n}“ sollte „Kein Einstieg“ haben.',
+vCodeBad:'Ziel „{n}“: Code „{c}“ muss 1 bis 4 Ziffern haben.',vCodeDup:'Code {c} gehört zu „{a}“ und „{b}“.',vTermNoName:'Ziel mit Code {c} hat keinen Namen.',vLen:'„{n}“: String {s} ist länger als {m} Zeichen.',
+vTermStop:'Endhaltestelle „{n}“ fehlt in der Haltestellenliste.',vNoLine:'Route {r} hat keine Liniennummer.',vRouteDup:'Routencode {r} kommt doppelt vor.',vDestMiss:'Route {r}: Ziel-Code existiert nicht.',vRouteShort:'Route {r} hat weniger als 2 Haltestellen.',vStopMiss:'Route {r}: Haltestelle „{n}“ ist nicht definiert.'},
+en:{
+tabGen:'General',tabTer:'Destinations',tabStp:'Stops',tabRte:'Routes',tabIbis:'IBIS test',tabFile:'File',lang:'Language',
+gen_title:'Depot basics',gen_intro:'The depot file tells the bus what to show on destination displays, in the IBIS and in announcements. Everything saves automatically in this browser.',
+hofName:'Depot name',hofNameH:'Shown in OMSI’s bus selection and must match the AI list entry.',
+service:'Service trip destination (servicetrip)',serviceH:'Destination shown when the bus is not on a line. It must exist under Destinations with “No boarding”.',
+folders:'Folders and letter codes',fAnn:'Announcements folder',fAnnH:'Subfolder in Vehicles\\Announcements',fRol:'Roller blind folder',fRolH:'Subfolder in Vehicles\\Anzeigen\\<vehicle>',fSide:'Side sign folder',fSideH:'Subfolder in Vehicles\\Anzeigen\\Seitenschilder',
+c9:'Letter code, 900 lines',c8:'Letter code, 800 lines',c5:'Letter code, 500 lines',cH:'Number 01 to 99 from the bus’s Matrix.osc. Leave empty if unused.',
+counts:'String counts',scT:'Strings per destination',scB:'Strings per stop',scH:'OMSI only reads this many strings. Counting starts at 0.',presetStd:'Standard (7 / 4)',presetUni:'Universal (26 / 9)',
+ter_title:'Destinations (terminus)',ter_intro:'Each row is a destination with an IBIS code. A code may only belong to one name. The name must match the bus stop cube or the timetable destination.',
+add:'Add',del:'Delete row',fillT:'Fill empty strings from name',filter:'Filter …',colAllex:'No boarding',colCode:'Code',colName:'Name',colStop:'Stop',
+stp_title:'Stops',stp_intro:'All stops a player bus can serve, including terminus stops. The name matches the editor name and the announcement file name (without .wav).',
+rte_title:'Routes',rte_intro:'A route is one direction of a line. The path in the game comes from the timetable; this list drives displays and announcements.',
+newRoute:'New route',noRoutes:'No routes yet.',line:'Line',routeNo:'Route (00–99)',desc:'Description',dest:'Destination',destNone:'– choose destination –',stopsList:'Stops in driving order',addStop:'Append stop',pasteLabel:'Paste stops (one per line)',pasteBtn:'Apply list',reverse:'Create opposite direction',delRoute:'Delete route',up:'Move up',down:'Move down',remove:'Remove',ibisInput:'IBIS input',
+ibis_title:'IBIS test',ibis_intro:'Enter line and route as in the bus, for example 20100 for line 2, route 01. Shows what the depot file makes of it.',
+ibisIn:'Line/course',destIn:'Destination code (optional)',front:'Front and side',ibis1:'IBIS 1',ibis2:'IBIS 2',roll:'Roller blind',interior:'Interior display',noMatch:'No route with this code. Enter a destination code to see only the destination.',routeFound:'Route found',prev:'Back',next:'Next',stopNow:'Current stop',noStops:'This route has no stops.',unknownDest:'Unknown destination',
+file_title:'File',fmt:'Format',fmt2:'OMSI 2 (table lists)',fmt1:'OMSI 1 and 2 (line by line)',copy:'Copy',copied:'Copied',copyFail:'Selected. Press Ctrl+C to copy.',
+saveHint:'Paste the text into Windows Notepad and save it as “All files” with the extension .hof and ANSI encoding (not UTF-8) directly in the bus folder. Changes only apply after restarting OMSI.',
+importT:'Open an existing depot file',importHint:'Pick a file or paste its content. Current data will be replaced.',pickFile:'Choose .hof file',applyImport:'Import',undo:'Undo',imported:'Imported: {a} destinations, {b} stops, {c} routes.',
+newEmpty:'Start a new empty depot',sure:'Sure? Click again',exampleBanner:'This is example data. Overwrite it or start empty.',clearEx:'Start empty',
+problems:'Check',noProblems:'No problems found.',
+vNoName:'The depot has no name.',vNoService:'No service trip destination set.',vService:'Service trip destination “{n}” is not in the destination list.',vServiceAllex:'“{n}” should be set to “No boarding”.',
+vCodeBad:'Destination “{n}”: code “{c}” must be 1 to 4 digits.',vCodeDup:'Code {c} belongs to “{a}” and “{b}”.',vTermNoName:'Destination with code {c} has no name.',vLen:'“{n}”: string {s} is longer than {m} characters.',
+vTermStop:'Terminus stop “{n}” is missing from the stop list.',vNoLine:'Route {r} has no line number.',vRouteDup:'Route code {r} appears twice.',vDestMiss:'Route {r}: destination code does not exist.',vRouteShort:'Route {r} has fewer than 2 stops.',vStopMiss:'Route {r}: stop “{n}” is not defined.'},
+nl:{
+tabGen:'Algemeen',tabTer:'Bestemmingen',tabStp:'Haltes',tabRte:'Routes',tabIbis:'IBIS-test',tabFile:'Bestand',lang:'Taal',
+gen_title:'Basisgegevens',gen_intro:'Het hofbestand vertelt de bus wat hij toont op bestemmingsborden, in de IBIS en bij omroepen. Alles wordt automatisch in deze browser opgeslagen.',
+hofName:'Naam van het hof',hofNameH:'Verschijnt in de busselectie van OMSI en moet overeenkomen met de AI-lijst.',
+service:'Dienstrit-bestemming (servicetrip)',serviceH:'Bestemming zonder lijn. Moet bij Bestemmingen staan met „Niet instappen“.',
+folders:'Mappen en lettercodes',fAnn:'Map omroepen',fAnnH:'Submap in Vehicles\\Announcements',fRol:'Map rolbanden',fRolH:'Submap in Vehicles\\Anzeigen\\<voertuig>',fSide:'Map zijborden',fSideH:'Submap in Vehicles\\Anzeigen\\Seitenschilder',
+c9:'Lettercode 900-lijnen',c8:'Lettercode 800-lijnen',c5:'Lettercode 500-lijnen',cH:'Getal 01 tot 99 uit de Matrix.osc van de bus. Leeg laten indien ongebruikt.',
+counts:'Aantal strings',scT:'Strings per bestemming',scB:'Strings per halte',scH:'OMSI leest alleen dit aantal. Telling begint bij 0.',presetStd:'Standaard (7 / 4)',presetUni:'Universeel (26 / 9)',
+ter_title:'Bestemmingen',ter_intro:'Elke rij is een bestemming met IBIS-code. Een code hoort bij één naam. De naam moet overeenkomen met de haltekubus of de dienstregeling.',
+add:'Toevoegen',del:'Rij verwijderen',fillT:'Lege strings vullen uit naam',filter:'Filteren …',colAllex:'Niet instappen',colCode:'Code',colName:'Naam',colStop:'Halte',
+stp_title:'Haltes',stp_intro:'Alle haltes die een spelersbus kan bedienen, ook eindhaltes. De naam komt overeen met de editor en de bestandsnaam van het omroepbestand (zonder .wav).',
+rte_title:'Routes',rte_intro:'Een route is één richting van een lijn. Het traject in het spel komt uit de dienstregeling; deze lijst stuurt displays en omroepen.',
+newRoute:'Nieuwe route',noRoutes:'Nog geen routes.',line:'Lijn',routeNo:'Route (00–99)',desc:'Omschrijving',dest:'Bestemming',destNone:'– kies bestemming –',stopsList:'Haltes in rijvolgorde',addStop:'Halte toevoegen',pasteLabel:'Haltes plakken (één per regel)',pasteBtn:'Lijst toepassen',reverse:'Tegenrichting maken',delRoute:'Route verwijderen',up:'Omhoog',down:'Omlaag',remove:'Verwijderen',ibisInput:'IBIS-invoer',
+ibis_title:'IBIS-test',ibis_intro:'Voer lijn en route in zoals in de bus, bijvoorbeeld 20100 voor lijn 2, route 01.',
+ibisIn:'Lijn/omloop',destIn:'Bestemmingscode (optioneel)',front:'Voor en zij',ibis1:'IBIS 1',ibis2:'IBIS 2',roll:'Rolband',interior:'Binnendisplay',noMatch:'Geen route met deze code. Voer een bestemmingscode in.',routeFound:'Route gevonden',prev:'Terug',next:'Volgende',stopNow:'Huidige halte',noStops:'Deze route heeft geen haltes.',unknownDest:'Onbekende bestemming',
+file_title:'Bestand',fmt:'Formaat',fmt2:'OMSI 2 (tabellijsten)',fmt1:'OMSI 1 en 2 (regel voor regel)',copy:'Kopiëren',copied:'Gekopieerd',copyFail:'Geselecteerd. Druk op Ctrl+C.',
+saveHint:'Plak de tekst in Kladblok en sla op als „Alle bestanden“ met extensie .hof en codering ANSI (niet UTF-8) in de busmap. Wijzigingen werken pas na een herstart van OMSI.',
+importT:'Bestaand hofbestand openen',importHint:'Kies een bestand of plak de inhoud. Huidige gegevens worden vervangen.',pickFile:'.hof-bestand kiezen',applyImport:'Importeren',undo:'Ongedaan maken',imported:'Geïmporteerd: {a} bestemmingen, {b} haltes, {c} routes.',
+newEmpty:'Nieuw leeg hof',sure:'Zeker? Klik nogmaals',exampleBanner:'Dit zijn voorbeeldgegevens. Overschrijf ze of begin leeg.',clearEx:'Leeg beginnen',
+problems:'Controle',noProblems:'Geen problemen gevonden.',
+vNoName:'Het hof heeft geen naam.',vNoService:'Geen dienstrit-bestemming ingesteld.',vService:'Dienstrit-bestemming „{n}“ staat niet in de lijst.',vServiceAllex:'„{n}“ hoort op „Niet instappen“ te staan.',
+vCodeBad:'Bestemming „{n}“: code „{c}“ moet 1 tot 4 cijfers zijn.',vCodeDup:'Code {c} hoort bij „{a}“ en „{b}“.',vTermNoName:'Bestemming met code {c} heeft geen naam.',vLen:'„{n}“: string {s} is langer dan {m} tekens.',
+vTermStop:'Eindhalte „{n}“ ontbreekt in de haltelijst.',vNoLine:'Route {r} heeft geen lijnnummer.',vRouteDup:'Routecode {r} komt dubbel voor.',vDestMiss:'Route {r}: bestemmingscode bestaat niet.',vRouteShort:'Route {r} heeft minder dan 2 haltes.',vStopMiss:'Route {r}: halte „{n}“ is niet gedefinieerd.'},
+pl:{
+tabGen:'Ogólne',tabTer:'Cele',tabStp:'Przystanki',tabRte:'Trasy',tabIbis:'Test IBIS',tabFile:'Plik',lang:'Język',
+gen_title:'Dane podstawowe',gen_intro:'Plik zajezdni mówi autobusowi, co pokazać na wyświetlaczach, w IBIS i w zapowiedziach. Wszystko zapisuje się automatycznie w tej przeglądarce.',
+hofName:'Nazwa zajezdni',hofNameH:'Pojawia się w wyborze autobusu w OMSI i musi pasować do wpisu w AI-List.',
+service:'Cel kursu technicznego (servicetrip)',serviceH:'Cel bez linii. Musi być na liście celów z opcją „Bez wsiadania”.',
+folders:'Foldery i kody liter',fAnn:'Folder zapowiedzi',fAnnH:'Podfolder w Vehicles\\Announcements',fRol:'Folder rolki',fRolH:'Podfolder w Vehicles\\Anzeigen\\<pojazd>',fSide:'Folder tablic bocznych',fSideH:'Podfolder w Vehicles\\Anzeigen\\Seitenschilder',
+c9:'Kod litery, linie 900',c8:'Kod litery, linie 800',c5:'Kod litery, linie 500',cH:'Liczba 01–99 z Matrix.osc autobusu. Zostaw puste, jeśli nieużywane.',
+counts:'Liczba stringów',scT:'Stringi na cel',scB:'Stringi na przystanek',scH:'OMSI czyta tylko tyle stringów. Liczenie od 0.',presetStd:'Standard (7 / 4)',presetUni:'Uniwersalny (26 / 9)',
+ter_title:'Cele (pętle)',ter_intro:'Każdy wiersz to cel z kodem IBIS. Kod może należeć tylko do jednej nazwy. Nazwa musi pasować do kostki przystanku lub rozkładu.',
+add:'Dodaj',del:'Usuń wiersz',fillT:'Wypełnij puste stringi z nazwy',filter:'Filtruj …',colAllex:'Bez wsiadania',colCode:'Kod',colName:'Nazwa',colStop:'Przystanek',
+stp_title:'Przystanki',stp_intro:'Wszystkie przystanki obsługiwane przez autobus gracza, także końcowe. Nazwa odpowiada nazwie w edytorze i plikowi zapowiedzi (bez .wav).',
+rte_title:'Trasy',rte_intro:'Trasa to jeden kierunek linii. Przebieg w grze wynika z rozkładu; ta lista steruje wyświetlaczami i zapowiedziami.',
+newRoute:'Nowa trasa',noRoutes:'Brak tras.',line:'Linia',routeNo:'Trasa (00–99)',desc:'Opis',dest:'Cel',destNone:'– wybierz cel –',stopsList:'Przystanki w kolejności jazdy',addStop:'Dodaj przystanek',pasteLabel:'Wklej przystanki (jeden w wierszu)',pasteBtn:'Zastosuj listę',reverse:'Utwórz kierunek przeciwny',delRoute:'Usuń trasę',up:'W górę',down:'W dół',remove:'Usuń',ibisInput:'Wpis IBIS',
+ibis_title:'Test IBIS',ibis_intro:'Wpisz linię i trasę jak w autobusie, np. 20100 dla linii 2, trasy 01.',
+ibisIn:'Linia/kurs',destIn:'Kod celu (opcjonalnie)',front:'Przód i bok',ibis1:'IBIS 1',ibis2:'IBIS 2',roll:'Rolka',interior:'Wyświetlacz wewnętrzny',noMatch:'Brak trasy z tym kodem. Wpisz kod celu.',routeFound:'Znaleziono trasę',prev:'Wstecz',next:'Dalej',stopNow:'Bieżący przystanek',noStops:'Ta trasa nie ma przystanków.',unknownDest:'Nieznany cel',
+file_title:'Plik',fmt:'Format',fmt2:'OMSI 2 (listy tabelaryczne)',fmt1:'OMSI 1 i 2 (wiersz po wierszu)',copy:'Kopiuj',copied:'Skopiowano',copyFail:'Zaznaczono. Naciśnij Ctrl+C.',
+saveHint:'Wklej tekst do Notatnika i zapisz jako „Wszystkie pliki” z rozszerzeniem .hof i kodowaniem ANSI (nie UTF-8) w folderze autobusu. Zmiany działają po ponownym uruchomieniu OMSI.',
+importT:'Otwórz istniejący plik zajezdni',importHint:'Wybierz plik lub wklej zawartość. Bieżące dane zostaną zastąpione.',pickFile:'Wybierz plik .hof',applyImport:'Importuj',undo:'Cofnij',imported:'Zaimportowano: celów {a}, przystanków {b}, tras {c}.',
+newEmpty:'Nowa pusta zajezdnia',sure:'Na pewno? Kliknij ponownie',exampleBanner:'To dane przykładowe. Nadpisz je albo zacznij od zera.',clearEx:'Zacznij od zera',
+problems:'Kontrola',noProblems:'Nie znaleziono problemów.',
+vNoName:'Zajezdnia nie ma nazwy.',vNoService:'Nie ustawiono celu kursu technicznego.',vService:'Cel kursu technicznego „{n}” nie jest na liście celów.',vServiceAllex:'„{n}” powinien mieć „Bez wsiadania”.',
+vCodeBad:'Cel „{n}”: kod „{c}” musi mieć 1–4 cyfry.',vCodeDup:'Kod {c} należy do „{a}” i „{b}”.',vTermNoName:'Cel z kodem {c} nie ma nazwy.',vLen:'„{n}”: string {s} jest dłuższy niż {m} znaków.',
+vTermStop:'Przystanek końcowy „{n}” brakuje na liście przystanków.',vNoLine:'Trasa {r} nie ma numeru linii.',vRouteDup:'Kod trasy {r} występuje dwa razy.',vDestMiss:'Trasa {r}: kod celu nie istnieje.',vRouteShort:'Trasa {r} ma mniej niż 2 przystanki.',vStopMiss:'Trasa {r}: przystanek „{n}” nie jest zdefiniowany.'}
+};
+const LANGS=[['de','Deutsch'],['en','English'],['nl','Nederlands'],['pl','Polski']];
+const LBL_T=['IBIS 1','Matrix Z1','Matrix Z2','Seite','Rollband','IBIS 2','Steckschild','Krüger-Tex.','Front 1-zeilig','Heck','Gegenroute','Vollm. 1','Vollm. 2','LAWO F1','LAWO F2','LAWO S1','LAWO S2','IBIS NF','ÜL 1','ÜL 2','Innen 1','Innen 2','Heck LAWO','Krüger 1','Krüger 2','Anzeigecode'];
+const LBL_B=['IBIS 1','Innen 1','Innen 2','IBIS 2','Ansagecode','Wabencode','IBIS NF','Ansagelänge s','Innen NF'];
+
+/* ---------- Zustand ---------- */
+let lang=(()=>{try{const l=localStorage.getItem('hofw-lang');if(l&&I[l])return l}catch(e){}const n=(navigator.language||'de').slice(0,2);return I[n]?n:'de'})();
+const tr=(k,v)=>{const d=(I[lang]&&I[lang][k]!=null)?I[lang][k]:(I.en[k]!=null?I.en[k]:k);return v?d.replace(/\{(\w+)\}/g,(_,x)=>v[x]==null?'':v[x]):d};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const T=(k,v)=>esc(tr(k,v));
+const $=s=>document.querySelector(s);
+
+function example(){
+  const S=newState();S.example=true;S.name='Beispielhof Neustadt';S.servicetrip='Betriebsfahrt';
+  S.gs.announce='Neustadt';S.gs.rollband='Neustadt';S.gs.side='Neustadt';
+  const T=(allexit,code,name,short)=>({allexit,code,name,strings:[short.toUpperCase().slice(0,16),name.slice(0,16),'',name.slice(0,16),'',name.slice(0,20),'']});
+  S.termini=[T(true,'110','Betriebsfahrt','Betriebsfahrt'),T(false,'111','Bahnhof','Bahnhof'),T(false,'112','Hauptfriedhof','Hauptfriedhof'),T(false,'113','Industriepark','Industriepark')];
+  const P=(n)=>({name:n,strings:[n.toUpperCase().slice(0,16),n,'',n]});
+  S.stops=['Bahnhof','Marktplatz','Rathaus','Schulzentrum','Hauptfriedhof','Gewerbering','Industriepark'].map(P);
+  S.routes=[
+    {line:'2',route:'01',desc:'Bahnhof - Hauptfriedhof',dest:'112',stops:['Bahnhof','Marktplatz','Rathaus','Schulzentrum','Hauptfriedhof']},
+    {line:'2',route:'02',desc:'Hauptfriedhof - Bahnhof',dest:'111',stops:['Hauptfriedhof','Schulzentrum','Rathaus','Marktplatz','Bahnhof']},
+    {line:'7',route:'01',desc:'Bahnhof - Industriepark',dest:'113',stops:['Bahnhof','Marktplatz','Gewerbering','Industriepark']}];
+  return S;
+}
+let S=(()=>{try{const j=JSON.parse(localStorage.getItem('hofw-state')||'null');if(j&&Array.isArray(j.termini))return Object.assign(newState(),j)}catch(e){}return example()})();
+let tab='gen',selR=0,prevS=null,fmt='list',ib={v:'20100',dest:'',stop:0},saveT=null,flt={ter:'',stp:''};
+function persist(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem('hofw-state',JSON.stringify(S))}catch(e){}},300)}
+function dirty(){if(S.example){S.example=false;const b=$('#banner');if(b)b.remove()}persist();updBadge();}
+
+/* ---------- Rendering ---------- */
+const TABS=['gen','ter','stp','rte','ibis','file'];
+const TK={gen:'tabGen',ter:'tabTer',stp:'tabStp',rte:'tabRte',ibis:'tabIbis',file:'tabFile'};
+function renderTabs(){
+  $('#tabs').innerHTML=TABS.map(k=>`<button role="tab" aria-selected="${k===tab}" data-act="tab" data-k="${k}">${T(TK[k])}${k==='file'?'<span id="bdg"></span>':''}</button>`).join('');
+  $('#langLbl').textContent=tr('lang');updBadge();
+}
+function updBadge(){
+  const el=$('#bdg');if(!el)return;
+  const v=validate(S,tr);const e=v.filter(x=>x.lvl==='err').length;
+  el.innerHTML=v.length?`<span class="badge ${e?'err':''}">${v.length}</span>`:'';
+}
+function render(){
+  renderTabs();const v=$('#view');
+  ({gen:rGen,ter:rTer,stp:rStp,rte:rRte,ibis:rIbis,file:rFile})[tab](v);
+  if(S.example&&tab!=='file'){v.insertAdjacentHTML('afterbegin',`<div class="banner" id="banner"><span>${T('exampleBanner')}</span><button class="btn sm" data-act="clearEx">${T('clearEx')}</button></div>`)}
+}
+function fld(label,help,inner){return `<div class="field"><label>${label}</label>${inner}${help?`<small>${help}</small>`:''}</div>`}
+function rGen(v){
+  const g=S.gs;
+  v.innerHTML=`<h2>${T('gen_title')}</h2><p class="intro">${T('gen_intro')}</p>
+  <div class="card"><div class="grid">
+   ${fld(T('hofName'),T('hofNameH'),`<input type="text" id="f-name" data-g="name" value="${esc(S.name)}">`)}
+   ${fld(T('service'),T('serviceH'),`<input type="text" data-g="servicetrip" list="dl-ter" value="${esc(S.servicetrip)}">`)}
+  </div></div>
+  <div class="card"><h3>${T('folders')}</h3><div class="grid">
+   ${fld(T('fAnn'),T('fAnnH'),`<input type="text" data-gs="announce" value="${esc(g.announce)}">`)}
+   ${fld(T('fRol'),T('fRolH'),`<input type="text" data-gs="rollband" value="${esc(g.rollband)}">`)}
+   ${fld(T('fSide'),T('fSideH'),`<input type="text" data-gs="side" value="${esc(g.side)}">`)}
+   ${fld(T('c9'),T('cH'),`<input type="text" data-gs="c900" inputmode="numeric" value="${esc(g.c900)}">`)}
+   ${fld(T('c8'),'',`<input type="text" data-gs="c800" inputmode="numeric" value="${esc(g.c800)}">`)}
+   ${fld(T('c5'),'',`<input type="text" data-gs="c500" inputmode="numeric" value="${esc(g.c500)}">`)}
+  </div></div>
+  <div class="card"><h3>${T('counts')}</h3><div class="row" style="align-items:flex-end">
+   ${fld(T('scT'),'',`<input type="number" min="1" max="999" data-g="scT" value="${S.scT}">`)}
+   ${fld(T('scB'),'',`<input type="number" min="1" max="999" data-g="scB" value="${S.scB}">`)}
+   <button class="btn" data-act="preset" data-p="7,4">${T('presetStd')}</button><button class="btn" data-act="preset" data-p="26,9">${T('presetUni')}</button>
+  </div><p class="hint" style="margin:10px 0 0">${T('scH')}</p></div>
+  <datalist id="dl-ter">${S.termini.map(r=>`<option value="${esc(r.name)}">`).join('')}</datalist>`;
+}
+function termRow(r,i){
+  let h=`<tr data-i="${i}"><td class="s1"><button class="x" data-act="delT" data-i="${i}" title="${T('del')}" aria-label="${T('del')}">×</button></td>
+  <td class="s2"><input type="checkbox" data-tf="allexit" data-i="${i}" ${r.allexit?'checked':''} title="${T('colAllex')}" aria-label="${T('colAllex')}"></td>
+  <td class="s3"><input type="text" data-tf="code" data-i="${i}" value="${esc(r.code)}" inputmode="numeric" aria-label="${T('colCode')}"></td>
+  <td class="s4"><input type="text" data-tf="name" data-i="${i}" value="${esc(r.name)}" aria-label="${T('colName')}"></td>`;
+  for(let k=0;k<S.scT;k++){const val=r.strings[k]||'';h+=`<td><input type="text" data-ts="${k}" data-i="${i}" value="${esc(val)}" class="${LIM_T[k]&&val.length>LIM_T[k]?'over':''}"></td>`}
+  return h+'</tr>';
+}
+function rTer(v){
+  let th='';for(let k=0;k<S.scT;k++)th+=`<th>S${k}<small>${esc(LBL_T[k]||'')}</small></th>`;
+  v.innerHTML=`<h2>${T('ter_title')}</h2><p class="intro">${T('ter_intro')}</p>
+  <div class="row" style="margin-bottom:10px"><button class="btn primary" data-act="addT">${T('add')}</button><button class="btn" data-act="fillT">${T('fillT')}</button>
+   <input type="text" id="flt" data-flt="ter" placeholder="${T('filter')}" value="${esc(flt.ter)}" style="max-width:220px;margin-left:auto"></div>
+  <div class="gridwrap"><table class="g"><thead><tr><th class="s1"></th><th class="s2" title="${T('colAllex')}">⛔</th><th class="s3">${T('colCode')}</th><th class="s4">${T('colName')}</th>${th}</tr></thead>
+  <tbody id="tb">${S.termini.map(termRow).join('')}</tbody></table></div>`;
+  applyFlt('ter');
+}
+function stopRow(r,i){
+  let h=`<tr data-i="${i}"><td class="s1"><button class="x" data-act="delS" data-i="${i}" title="${T('del')}" aria-label="${T('del')}">×</button></td>
+  <td class="s2"><input type="text" data-sf="name" data-i="${i}" value="${esc(r.name)}" aria-label="${T('colStop')}"></td>`;
+  for(let k=0;k<S.scB;k++){const val=r.strings[k]||'';h+=`<td><input type="text" data-ss="${k}" data-i="${i}" value="${esc(val)}" class="${LIM_B[k]&&val.length>LIM_B[k]?'over':''}"></td>`}
+  return h+'</tr>';
+}
+function rStp(v){
+  let th='';for(let k=0;k<S.scB;k++)th+=`<th>S${k}<small>${esc(LBL_B[k]||'')}</small></th>`;
+  v.innerHTML=`<h2>${T('stp_title')}</h2><p class="intro">${T('stp_intro')}</p>
+  <div class="row" style="margin-bottom:10px"><button class="btn primary" data-act="addS">${T('add')}</button><button class="btn" data-act="fillS">${T('fillT')}</button>
+   <input type="text" id="flt" data-flt="stp" placeholder="${T('filter')}" value="${esc(flt.stp)}" style="max-width:220px;margin-left:auto"></div>
+  <div class="gridwrap"><table class="g st"><thead><tr><th class="s1"></th><th class="s2">${T('colStop')}</th>${th}</tr></thead>
+  <tbody id="tb">${S.stops.map(stopRow).join('')}</tbody></table></div>`;
+  applyFlt('stp');
+}
+function applyFlt(k){
+  const q=flt[k].toLowerCase();
+  document.querySelectorAll('#tb tr').forEach(tr=>{const i=+tr.dataset.i;const n=((k==='ter'?S.termini[i]:S.stops[i])||{}).name||'';tr.hidden=!!q&&!n.toLowerCase().includes(q)});
+}
+function destName(code){const t=S.termini.find(x=>String(x.code).trim()===String(code).trim());return t?t.name:''}
+function rlistHtml(){
+  if(!S.routes.length)return `<p class="hint">${T('noRoutes')}</p>`;
+  return S.routes.map((r,i)=>`<button data-act="selR" data-i="${i}" aria-current="${i===selR}"><span class="ln">${esc(r.line||'?')}</span><span><span class="rn">${esc(routeCode(r))}</span><br>${esc(destName(r.dest)||r.desc||'–')}</span></button>`).join('');
+}
+function rteEditor(){
+  const r=S.routes[selR];if(!r)return '';
+  const names=new Set(S.stops.map(x=>x.name));
+  return `<div class="card"><div class="grid">
+   ${fld(T('line'),'',`<input type="text" data-rf="line" value="${esc(r.line)}" inputmode="numeric">`)}
+   ${fld(T('routeNo'),'',`<input type="text" data-rf="route" value="${esc(r.route)}" inputmode="numeric">`)}
+   ${fld(T('desc'),'',`<input type="text" data-rf="desc" value="${esc(r.desc)}">`)}
+   ${fld(T('dest'),'',`<select data-rf="dest"><option value="">${T('destNone')}</option>${S.termini.filter(x=>!x.allexit).map(x=>`<option value="${esc(x.code)}" ${String(x.code).trim()===String(r.dest).trim()?'selected':''}>${esc(x.name)} (${esc(x.code)})</option>`).join('')}</select>`)}
+  </div><p class="hint" style="margin:10px 0 0">${T('ibisInput')}: <code id="rcode">${esc(routeCode(r))}</code></p></div>
+  <div class="card"><h3>${T('stopsList')} · ${r.stops.length}</h3><div id="rs">${r.stops.map((n,k)=>`<div class="srow"><span class="no">${k+1}</span><input type="text" list="dl-stops" data-rs="${k}" value="${esc(n)}" class="${names.has(n)?'':'miss'}"><span class="acts"><button class="x" data-act="upRS" data-k="${k}" title="${T('up')}" aria-label="${T('up')}">↑</button><button class="x" data-act="dnRS" data-k="${k}" title="${T('down')}" aria-label="${T('down')}">↓</button><button class="x" data-act="delRS" data-k="${k}" title="${T('remove')}" aria-label="${T('remove')}">×</button></span></div>`).join('')}</div>
+   <div class="row" style="margin-top:8px"><button class="btn" data-act="addRS">${T('addStop')}</button></div>
+   <div class="field" style="margin-top:14px"><label>${T('pasteLabel')}</label><textarea id="paste" rows="4"></textarea><div class="row"><button class="btn" data-act="pasteRS">${T('pasteBtn')}</button></div></div>
+  </div>
+  <div class="row"><button class="btn" data-act="rev">${T('reverse')}</button><button class="btn danger" data-act="delR">${T('delRoute')}</button></div>
+  <datalist id="dl-stops">${S.stops.map(x=>`<option value="${esc(x.name)}">`).join('')}</datalist>`;
+}
+function rRte(v){
+  if(selR>=S.routes.length)selR=Math.max(0,S.routes.length-1);
+  v.innerHTML=`<h2>${T('rte_title')}</h2><p class="intro">${T('rte_intro')}</p>
+  <div class="split"><div><button class="btn primary" data-act="newR" style="width:100%;margin-bottom:8px">${T('newRoute')}</button><div class="rlist" id="rlist">${rlistHtml()}</div></div><div id="reditor">${rteEditor()}</div></div>`;
+}
+const center=(s,n)=>{s=String(s||'').slice(0,n);const p=Math.floor((n-s.length)/2);return ' '.repeat(Math.max(0,p))+s};
+function rIbis(v){
+  v.innerHTML=`<h2>${T('ibis_title')}</h2><p class="intro">${T('ibis_intro')}</p>
+  <div class="card"><div class="row">${fld(T('ibisIn'),'',`<input type="text" id="ibv" data-ib="v" inputmode="numeric" value="${esc(ib.v)}" style="width:150px;font:500 20px var(--f-mono)">`)}
+  ${fld(T('destIn'),'',`<input type="text" id="ibd" data-ib="dest" inputmode="numeric" value="${esc(ib.dest)}" style="width:150px;font:500 20px var(--f-mono)">`)}</div></div>
+  <div id="ibisOut"></div>`;
+  updIbis();
+}
+function updIbis(){
+  const out=$('#ibisOut');if(!out)return;
+  const v=ib.v.replace(/\D/g,'').replace(/^0+/,'');
+  const r=v.length>=3?S.routes.find(x=>routeCode(x).replace(/^0+/,'')===v):null;
+  const tcode=(ib.dest.trim()||(r?r.dest:'')).trim();
+  const t=tcode?S.termini.find(x=>String(x.code).trim()===tcode):null;
+  const st=k=>(t&&t.strings[k])||'';
+  let h='';
+  h+=`<p class="hint">${r?`${T('routeFound')}: ${esc(routeCode(r))}${r.desc?' · '+esc(r.desc):''}`:T('noMatch')}</p>`;
+  if(tcode&&!t)h+=`<p class="hint" style="color:var(--err)">${T('unknownDest')}: ${esc(tcode)}</p>`;
+  h+=`<div class="led"><div><div class="lbl">${T('front')}</div><div class="mx"><div class="lnum">${esc(r?r.line:'')}</div><pre>${esc(center(st(1),16))}\n${esc(center(st(2),16))}</pre></div>
+   <div class="lbl" style="margin-top:10px">${T('front')} (S3)</div><pre class="lcd" style="margin:0">${esc(st(3))||'&nbsp;'}</pre></div>
+   <div class="cols2"><div><div class="lbl">${T('ibis1')} (S0)</div><div class="lcd">${esc(st(0))||'&nbsp;'}</div></div><div><div class="lbl">${T('ibis2')} (S5)</div><div class="lcd">${esc(st(5))||'&nbsp;'}</div></div><div><div class="lbl">${T('roll')} (S4)</div><div class="lcd">${esc(st(4))||'&nbsp;'}</div></div></div></div>`;
+  if(r){
+    if(!r.stops.length)h+=`<p class="hint">${T('noStops')}</p>`;
+    else{
+      ib.stop=Math.max(0,Math.min(ib.stop,r.stops.length-1));
+      const sn=r.stops[ib.stop],sp=S.stops.find(x=>x.name===sn),ss=k=>(sp&&sp.strings[k])||'';
+      h+=`<div class="led" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div class="lbl" style="margin:0">${T('stopNow')} ${ib.stop+1}/${r.stops.length}</div>
+      <span class="row"><button class="btn sm" data-act="ibPrev">${T('prev')}</button><button class="btn sm" data-act="ibNext">${T('next')}</button></span></div>
+      <div class="cols2"><div><div class="lbl">${T('ibis1')} (S0)</div><div class="lcd">${esc(ss(0))||'&nbsp;'}</div></div><div><div class="lbl">${T('ibis2')} (S3)</div><div class="lcd">${esc(ss(3))||'&nbsp;'}</div></div>
+      <div><div class="lbl">${T('interior')} (S1 / S2)</div><div class="lcd">${esc(ss(1))||'&nbsp;'}\n${esc(ss(2))}</div></div></div></div>`;
+    }
+  }
+  out.innerHTML=h;
+}
+function rFile(v){
+  v.innerHTML=`<h2>${T('file_title')}</h2>
+  <div class="card"><div class="row" style="justify-content:space-between;margin-bottom:10px"><label class="row" style="gap:8px">${T('fmt')}
+   <select id="fmt" style="width:auto"><option value="list" ${fmt==='list'?'selected':''}>${T('fmt2')}</option><option value="lines" ${fmt==='lines'?'selected':''}>${T('fmt1')}</option></select></label>
+   <button class="btn primary" data-act="copy" id="cpy">${T('copy')}</button></div>
+   <textarea id="out" rows="14" readonly spellcheck="false" style="white-space:pre;overflow:auto"></textarea>
+   <p class="hint" style="margin:10px 0 0">${T('saveHint')}</p></div>
+  <div class="card"><h3>${T('problems')}</h3><ul class="chk" id="chk"></ul></div>
+  <div class="card"><h3>${T('importT')}</h3><p class="hint" style="margin-top:0">${T('importHint')}</p>
+   <div class="row" style="margin-bottom:8px"><label class="btn" for="pick" style="display:inline-block">${T('pickFile')}</label><input type="file" id="pick" accept=".hof,.txt" hidden></div>
+   <textarea id="imp" rows="6" spellcheck="false"></textarea>
+   <div class="row" style="margin-top:8px"><button class="btn primary" data-act="doImport">${T('applyImport')}</button><button class="btn" data-act="undo" ${prevS?'':'disabled'}>${T('undo')}</button><span class="hint" id="impmsg"></span></div></div>
+  <div class="row"><button class="btn danger" data-act="newEmpty">${T('newEmpty')}</button></div>`;
+  fillFile();
+}
+function fillFile(){
+  const o=$('#out');if(o)o.value=genHof(S,fmt);
+  const c=$('#chk');if(!c)return;const v=validate(S,tr);
+  c.innerHTML=v.length?v.slice(0,40).map(x=>`<li class="${x.lvl}">${esc(x.msg)}</li>`).join(''):`<li class="ok">${T('noProblems')}</li>`;
+}
+
+/* ---------- Eingaben ---------- */
+const pad=(a,n)=>{while(a.length<n)a.push('');return a};
+function onInput(e){
+  const el=e.target,d=el.dataset;if(!el.matches('input,select,textarea'))return;
+  const val=el.type==='checkbox'?el.checked:el.value;
+  if(d.flt){flt[d.flt]=val;applyFlt(d.flt);return}
+  if(d.ib){ib[d.ib]=val;if(d.ib==='v')ib.stop=0;updIbis();return}
+  if(el.id==='fmt'){fmt=val;fillFile();return}
+  if(d.g){if(d.g==='scT'||d.g==='scB'){S[d.g]=Math.max(1,Math.min(999,parseInt(val,10)||1))}else S[d.g]=val;
+    if(d.g==='name'||d.g==='servicetrip'){}dirty();return}
+  if(d.gs){S.gs[d.gs]=val;dirty();return}
+  if(d.tf!==undefined){const r=S.termini[+d.i];r[d.tf]=val;if(d.tf==='allexit'||d.tf==='name')persistRefresh();dirty();return}
+  if(d.ts!==undefined){const r=S.termini[+d.i];pad(r.strings,+d.ts+1)[+d.ts]=val;el.classList.toggle('over',!!LIM_T[d.ts]&&val.length>LIM_T[d.ts]);dirty();return}
+  if(d.sf!==undefined){S.stops[+d.i].name=val;dirty();return}
+  if(d.ss!==undefined){const r=S.stops[+d.i];pad(r.strings,+d.ss+1)[+d.ss]=val;el.classList.toggle('over',!!LIM_B[d.ss]&&val.length>LIM_B[d.ss]);dirty();return}
+  if(d.rf){const r=S.routes[selR];r[d.rf]=val;const rc=$('#rcode');if(rc)rc.textContent=routeCode(r);const rl=$('#rlist');if(rl)rl.innerHTML=rlistHtml();dirty();return}
+  if(d.rs!==undefined){const r=S.routes[selR];r.stops[+d.rs]=val;const names=new Set(S.stops.map(x=>x.name));el.classList.toggle('miss',!names.has(val));dirty();return}
+}
+function persistRefresh(){}
+document.addEventListener('input',onInput);
+document.addEventListener('change',e=>{if(e.target.matches('select'))onInput(e)});
+const armed=(el,fn)=>{if(el.dataset.armed){fn();return}el.dataset.armed='1';const o=el.textContent;el.textContent=tr('sure');setTimeout(()=>{if(el.isConnected){el.textContent=o;delete el.dataset.armed}},3000)};
+function lastTbFocus(sel){const rows=document.querySelectorAll('#tb tr');const l=rows[rows.length-1];if(l){const i=l.querySelector(sel);if(i){i.focus();l.scrollIntoView({block:'nearest'})}}}
+const UM={'ä':'AE','ö':'OE','ü':'UE','ß':'SS','Ä':'AE','Ö':'OE','Ü':'UE'};
+const up16=s=>s.replace(/[äöüßÄÖÜ]/g,c=>UM[c]).toUpperCase().slice(0,16);
+function copyText(){
+  const ta=$('#out'),b=$('#cpy');
+  const done=ok=>{b.textContent=ok?tr('copied'):tr('copyFail');setTimeout(()=>{b.textContent=tr('copy')},2200)};
+  const fb=()=>{ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}done(ok)};
+  try{navigator.clipboard.writeText(ta.value).then(()=>done(true),fb)}catch(e){fb()}
+}
+function doImport(){
+  const txt=$('#imp').value;if(!txt.trim())return;
+  prevS=JSON.parse(JSON.stringify(S));
+  const R=parseHof(txt);R.example=false;S=R;persist();
+  render();$('#impmsg').textContent=tr('imported',{a:S.termini.length,b:S.stops.length,c:S.routes.length});
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const d=b.dataset,a=d.act;
+  switch(a){
+    case 'tab':tab=d.k;render();return;
+    case 'clearEx':prevS=null;S=newState();persist();render();return;
+    case 'preset':{const[p,q]=d.p.split(',').map(Number);S.scT=p;S.scB=q;dirty();render();return}
+    case 'addT':S.termini.push({allexit:false,code:String(Math.max(100,...S.termini.map(x=>parseInt(x.code,10)||0))+1),name:'',strings:[]});dirty();rTer($('#view'));lastTbFocus('[data-tf="name"]');return;
+    case 'delT':S.termini.splice(+d.i,1);dirty();rTer($('#view'));return;
+    case 'fillT':S.termini.forEach(r=>{const n=r.name;if(!n)return;const set=(i,v)=>{if(i<S.scT&&!(r.strings[i]||'').trim())pad(r.strings,i+1)[i]=v};set(0,up16(n));set(1,n.slice(0,16));set(3,n.slice(0,16));set(5,n.slice(0,20));set(8,n.slice(0,15))});dirty();rTer($('#view'));return;
+    case 'addS':S.stops.push({name:'',strings:[]});dirty();rStp($('#view'));{const rows=document.querySelectorAll('#tb tr');const l=rows[rows.length-1];if(l)l.querySelector('input').focus()}return;
+    case 'delS':S.stops.splice(+d.i,1);dirty();rStp($('#view'));return;
+    case 'fillS':S.stops.forEach(r=>{const n=r.name;if(!n)return;const set=(i,v)=>{if(i<S.scB&&!(r.strings[i]||'').trim())pad(r.strings,i+1)[i]=v};set(0,up16(n));set(1,n.slice(0,20));set(3,n.slice(0,20))});dirty();rStp($('#view'));return;
+    case 'selR':selR=+d.i;rRte($('#view'));return;
+    case 'newR':{const l=S.routes[S.routes.length-1];S.routes.push({line:l?l.line:'1',route:pad2(S.routes.filter(x=>l&&x.line===l.line).length+1),desc:'',dest:'',stops:[]});selR=S.routes.length-1;dirty();rRte($('#view'));return}
+    case 'delR':S.routes.splice(selR,1);dirty();rRte($('#view'));return;
+    case 'addRS':S.routes[selR].stops.push('');dirty();rRte($('#view'));{const ins=document.querySelectorAll('#rs input');if(ins.length)ins[ins.length-1].focus()}return;
+    case 'delRS':S.routes[selR].stops.splice(+d.k,1);dirty();rRte($('#view'));return;
+    case 'upRS':case 'dnRS':{const s=S.routes[selR].stops,k=+d.k,j=a==='upRS'?k-1:k+1;if(j<0||j>=s.length)return;[s[k],s[j]]=[s[j],s[k]];dirty();rRte($('#view'));return}
+    case 'pasteRS':{const n=$('#paste').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!n.length)return;S.routes[selR].stops.push(...n);dirty();rRte($('#view'));return}
+    case 'rev':{const r=S.routes[selR];let no=parseInt(r.route,10)||0;const ids=new Set(S.routes.map(routeCode));let nr;do{no++;nr=pad2(no)}while(ids.has(r.line+nr));
+      const first=r.stops[0],t=S.termini.find(x=>!x.allexit&&x.name===first);
+      const parts=r.desc.split(' - ');S.routes.splice(selR+1,0,{line:r.line,route:nr,desc:parts.length>1?parts.reverse().join(' - '):r.desc,dest:t?t.code:'',stops:r.stops.slice().reverse()});selR++;dirty();rRte($('#view'));return}
+    case 'ibPrev':ib.stop--;updIbis();return;
+    case 'ibNext':ib.stop++;updIbis();return;
+    case 'copy':copyText();return;
+    case 'doImport':doImport();return;
+    case 'undo':if(prevS){S=prevS;prevS=null;persist();render()}return;
+    case 'newEmpty':armed(b,()=>{prevS=JSON.parse(JSON.stringify(S));S=newState();selR=0;persist();render()});return;
+  }
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='pick'&&e.target.files[0]){
+    const fr=new FileReader();fr.onload=()=>{$('#imp').value=fr.result;doImport()};fr.readAsText(e.target.files[0],'windows-1252');
+  }
+});
+/* Sprache */
+(function(){const s=$('#lang');s.innerHTML=LANGS.map(([k,n])=>`<option value="${k}" ${k===lang?'selected':''}>${n}</option>`).join('');
+  s.addEventListener('change',()=>{lang=s.value;try{localStorage.setItem('hofw-lang',lang)}catch(e){}document.documentElement.lang=lang;render()});document.documentElement.lang=lang})();
+render();
+</script>
+
+</body></html>
